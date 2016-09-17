@@ -1,0 +1,15 @@
+= Basic codes for Digital Image Processing
+João Marcos Costa <jmcosta944@gmail.com>
+== Implementing image processing theory with OpenCV(C++), by João Marcos Costa
+This portfolio is being built to report all knowledge-acquiring process along the Digital Image Processing course given at Federal University of Rio Grande do Norte (UFRN), Brazil. If there is some specific information needed to understand the codes (either documentation or image processing theory), it will be given. This site will be upgraded along the course. 
+
+:toc: left 
+
+This first part is pretty simple: we'll see how to acess a pixel's value and manipulate an image's region
+(tranfering, changing, copying...).
+
+==Exchange a region (randomly way)
+[source, cplusplus]
+----
+include::random.cpp[]
+----
