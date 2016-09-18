@@ -10,8 +10,8 @@ int main(int argc, char** argv){
 	int height,width,negative,i,j; 
 	
 	image=imread(argv[1],CV_LOAD_IMAGE_GRAYSCALE);
-	height=image.rows;
-	width=image.cols;
+	height=image.size().height;
+	width=image.size().width;
 	
 	cout<<"Height:"<<height<<" Width:"<<width<<endl;
 	
@@ -28,6 +28,7 @@ int main(int argc, char** argv){
 	}
 	
 	imshow("Negative",image);
+	imwrite("negative.jpg",image);
 	waitKey(5000);
 	return 0;
 }

@@ -9,8 +9,8 @@ int main(int argc, char** argv){
 	image=imread(argv[1],CV_LOAD_IMAGE_GRAYSCALE);
 	
 	unsigned height,width,N_h,N_v;
-	height=image.rows;
-	width=image.cols;
+	height=image.size().height;
+	width=image.size().width;
 	cout<<"Height: "<<height<<" Width: "<<width<<endl;
 	cout<<"Choose the number of horizontal parts:"<<endl;
 	cin>>N_h;
@@ -47,5 +47,6 @@ int main(int argc, char** argv){
 	namedWindow("result",WINDOW_AUTOSIZE);
 	imshow("original",image);
 	imshow("result",result);
+	imwrite("result.jpg",result);
 	waitKey(20000);
 }

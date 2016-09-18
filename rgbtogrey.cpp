@@ -17,5 +17,6 @@ int main(int argc, char** argv){
 		}
 	}
 	imshow("Greyscale Image",greyscale_image);
+	imwrite("rgbtogrey.jpg",greyscale_image);
 	waitKey(5000);
 }
