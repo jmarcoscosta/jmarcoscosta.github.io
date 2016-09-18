@@ -498,6 +498,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_exchanging_regions_negative_images_and_converting_rgb_model_to_greyscale_only_shades_of_grey">1. Exchanging regions, negative images and converting RGB model to greyscale (only shades of grey)</a>
 <ul class="sectlevel2">
 <li><a href="#_exchange_a_region_randomly_way">1.1. Exchange a region (randomly way)</a></li>
+<li><a href="#_exchange_a_region_letting_the_user_choose_the_order">1.2. Exchange a region (letting the user choose the order)</a></li>
 </ul>
 </li>
 </ul>
@@ -524,148 +525,123 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <p>We index the regions from left to right and top to bottom, as it is shown above.</p>
 </div>
 <div class="listingblock">
+<div class="title">random.cpp</div>
 <div class="content">
-<pre class="pygments highlight"><code data-lang="cpp"><span class="tok-n">random</span><span class="tok-p">.</span><span class="tok-n">cpp</span>
-<span class="tok-o">----</span>
-<span class="tok-cp">#include &lt;iostream&gt;</span>
+<pre class="pygments highlight"><code data-lang="cpp"><span class="tok-cp">#include &lt;iostream&gt;</span>
 <span class="tok-cp">#include &lt;opencv2/opencv.hpp&gt;</span>
 <span class="tok-cp">#include &lt;stdlib.h&gt;</span>
 <span class="tok-cp">#include &lt;time.h&gt;</span>
 <span class="tok-k">using</span> <span class="tok-k">namespace</span> <span class="tok-n">std</span><span class="tok-p">;</span>
-<span class="tok-k">using</span> <span class="tok-k">namespace</span> <span class="tok-n">cv</span><span class="tok-p">;</span></code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>int main(int argc, char** argv){
-	Mat image,upper,lower,final_image;
-	image=imread(argv[1],CV_LOAD_IMAGE_GRAYSCALE);
-	srand(time(NULL)); //doing this, every time you execute the code, the random number will be different
-	int random_region= rand() % 24; //generates a random number from 0 to 23
-	int possibilities[24][5]={
-	{0,1,2,3}, //each row represents a sequence of the four regions
-	{0,2,1,3},
-	{0,3,2,1},
-	{0,1,3,2},
-	{0,2,3,1},
-	{0,3,1,2},
-	{1,0,3,2},
-	{1,0,2,3},
-	{1,2,0,3},
-	{1,2,3,0},
-	{1,3,0,2},
-	{1,3,2,0},
-	{2,1,0,3},
-	{2,1,3,0},
-	{2,3,1,0},
-	{2,3,0,1},
-	{2,0,3,1},
-	{2,0,1,3},
-	{3,0,1,2},
-	{3,1,0,2},
-	{3,0,2,1},
-	{3,1,2,0},
-	{3,2,0,1},
-	{3,2,1,0}};
-	Rect regions[4];
-	regions[0]=Rect(0,0,image.rows/2,image.cols/2);
-	regions[1]=Rect(0,0.5*image.rows-1,image.rows/2,image.cols/2);
-	regions[2]=Rect(0.5*image.cols-1,0,image.rows/2,image.cols/2);
-	regions[3]=Rect(0.5*image.cols-1,0.5*image.rows-1,image.rows/2,image.cols/2);
-	//Rect is a OpenCV class used to select an image&#8217;s region of interest
-	//the coordinates you give are from the rectangle&#8217;s top-left corner
-	//Rect class constructor : (x coordinate, y coordinate, height, width)
-	int a,b,c,d;
-	a=probabilities[random_region][0];
-	b=probabilities[random_region][1];
-	c=probabilities[random_region][2];
-	d=probabilities[random_region][3];
-	hconcat(image(regions[a]),image(regions[b]),upper); //horizontal concatenation
-	hconcat(image(regions[c]),image(regions[d]),lower); //horizontal concatenation
-	vconcat(upper,lower,final_image); //vertical concatenation
-	imshow("final_image",final_image);
-	waitKey(); //if you touch any key from the keyboard, the image will be closed
-}</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre>=== Exchange a region (letting the user choose the order)
+<span class="tok-k">using</span> <span class="tok-k">namespace</span> <span class="tok-n">cv</span><span class="tok-p">;</span>
 
-[source, cpp]
-superchangeregions.cpp</pre>
+<span class="tok-kt">int</span> <span class="tok-nf">main</span><span class="tok-p">(</span><span class="tok-kt">int</span> <span class="tok-n">argc</span><span class="tok-p">,</span> <span class="tok-kt">char</span><span class="tok-o">**</span> <span class="tok-n">argv</span><span class="tok-p">){</span>
+	<span class="tok-n">Mat</span> <span class="tok-n">image</span><span class="tok-p">,</span><span class="tok-n">upper</span><span class="tok-p">,</span><span class="tok-n">lower</span><span class="tok-p">,</span><span class="tok-n">final_image</span><span class="tok-p">;</span>
+	<span class="tok-n">image</span><span class="tok-o">=</span><span class="tok-n">imread</span><span class="tok-p">(</span><span class="tok-n">argv</span><span class="tok-p">[</span><span class="tok-mi">1</span><span class="tok-p">],</span><span class="tok-n">CV_LOAD_IMAGE_GRAYSCALE</span><span class="tok-p">);</span>
+	<span class="tok-n">srand</span><span class="tok-p">(</span><span class="tok-n">time</span><span class="tok-p">(</span><span class="tok-nb">NULL</span><span class="tok-p">));</span> <span class="tok-c1">//doing this, every time you execute the code, the random number will be different</span>
+	<span class="tok-kt">int</span> <span class="tok-n">random_region</span><span class="tok-o">=</span> <span class="tok-n">rand</span><span class="tok-p">()</span> <span class="tok-o">%</span> <span class="tok-mi">24</span><span class="tok-p">;</span> <span class="tok-c1">//generates a random number from 0 to 23</span>
+	<span class="tok-kt">int</span> <span class="tok-n">possibilities</span><span class="tok-p">[</span><span class="tok-mi">24</span><span class="tok-p">][</span><span class="tok-mi">5</span><span class="tok-p">]</span><span class="tok-o">=</span><span class="tok-p">{</span>
+	<span class="tok-p">{</span><span class="tok-mi">0</span><span class="tok-p">,</span><span class="tok-mi">1</span><span class="tok-p">,</span><span class="tok-mi">2</span><span class="tok-p">,</span><span class="tok-mi">3</span><span class="tok-p">},</span> <span class="tok-c1">//each row represents a sequence of the four regions</span>
+	<span class="tok-p">{</span><span class="tok-mi">0</span><span class="tok-p">,</span><span class="tok-mi">2</span><span class="tok-p">,</span><span class="tok-mi">1</span><span class="tok-p">,</span><span class="tok-mi">3</span><span class="tok-p">},</span>
+	<span class="tok-p">{</span><span class="tok-mi">0</span><span class="tok-p">,</span><span class="tok-mi">3</span><span class="tok-p">,</span><span class="tok-mi">2</span><span class="tok-p">,</span><span class="tok-mi">1</span><span class="tok-p">},</span>
+	<span class="tok-p">{</span><span class="tok-mi">0</span><span class="tok-p">,</span><span class="tok-mi">1</span><span class="tok-p">,</span><span class="tok-mi">3</span><span class="tok-p">,</span><span class="tok-mi">2</span><span class="tok-p">},</span>
+	<span class="tok-p">{</span><span class="tok-mi">0</span><span class="tok-p">,</span><span class="tok-mi">2</span><span class="tok-p">,</span><span class="tok-mi">3</span><span class="tok-p">,</span><span class="tok-mi">1</span><span class="tok-p">},</span>
+	<span class="tok-p">{</span><span class="tok-mi">0</span><span class="tok-p">,</span><span class="tok-mi">3</span><span class="tok-p">,</span><span class="tok-mi">1</span><span class="tok-p">,</span><span class="tok-mi">2</span><span class="tok-p">},</span>
+	<span class="tok-p">{</span><span class="tok-mi">1</span><span class="tok-p">,</span><span class="tok-mi">0</span><span class="tok-p">,</span><span class="tok-mi">3</span><span class="tok-p">,</span><span class="tok-mi">2</span><span class="tok-p">},</span>
+	<span class="tok-p">{</span><span class="tok-mi">1</span><span class="tok-p">,</span><span class="tok-mi">0</span><span class="tok-p">,</span><span class="tok-mi">2</span><span class="tok-p">,</span><span class="tok-mi">3</span><span class="tok-p">},</span>
+	<span class="tok-p">{</span><span class="tok-mi">1</span><span class="tok-p">,</span><span class="tok-mi">2</span><span class="tok-p">,</span><span class="tok-mi">0</span><span class="tok-p">,</span><span class="tok-mi">3</span><span class="tok-p">},</span>
+	<span class="tok-p">{</span><span class="tok-mi">1</span><span class="tok-p">,</span><span class="tok-mi">2</span><span class="tok-p">,</span><span class="tok-mi">3</span><span class="tok-p">,</span><span class="tok-mi">0</span><span class="tok-p">},</span>
+	<span class="tok-p">{</span><span class="tok-mi">1</span><span class="tok-p">,</span><span class="tok-mi">3</span><span class="tok-p">,</span><span class="tok-mi">0</span><span class="tok-p">,</span><span class="tok-mi">2</span><span class="tok-p">},</span>
+	<span class="tok-p">{</span><span class="tok-mi">1</span><span class="tok-p">,</span><span class="tok-mi">3</span><span class="tok-p">,</span><span class="tok-mi">2</span><span class="tok-p">,</span><span class="tok-mi">0</span><span class="tok-p">},</span>
+	<span class="tok-p">{</span><span class="tok-mi">2</span><span class="tok-p">,</span><span class="tok-mi">1</span><span class="tok-p">,</span><span class="tok-mi">0</span><span class="tok-p">,</span><span class="tok-mi">3</span><span class="tok-p">},</span>
+	<span class="tok-p">{</span><span class="tok-mi">2</span><span class="tok-p">,</span><span class="tok-mi">1</span><span class="tok-p">,</span><span class="tok-mi">3</span><span class="tok-p">,</span><span class="tok-mi">0</span><span class="tok-p">},</span>
+	<span class="tok-p">{</span><span class="tok-mi">2</span><span class="tok-p">,</span><span class="tok-mi">3</span><span class="tok-p">,</span><span class="tok-mi">1</span><span class="tok-p">,</span><span class="tok-mi">0</span><span class="tok-p">},</span>
+	<span class="tok-p">{</span><span class="tok-mi">2</span><span class="tok-p">,</span><span class="tok-mi">3</span><span class="tok-p">,</span><span class="tok-mi">0</span><span class="tok-p">,</span><span class="tok-mi">1</span><span class="tok-p">},</span>
+	<span class="tok-p">{</span><span class="tok-mi">2</span><span class="tok-p">,</span><span class="tok-mi">0</span><span class="tok-p">,</span><span class="tok-mi">3</span><span class="tok-p">,</span><span class="tok-mi">1</span><span class="tok-p">},</span>
+	<span class="tok-p">{</span><span class="tok-mi">2</span><span class="tok-p">,</span><span class="tok-mi">0</span><span class="tok-p">,</span><span class="tok-mi">1</span><span class="tok-p">,</span><span class="tok-mi">3</span><span class="tok-p">},</span>
+	<span class="tok-p">{</span><span class="tok-mi">3</span><span class="tok-p">,</span><span class="tok-mi">0</span><span class="tok-p">,</span><span class="tok-mi">1</span><span class="tok-p">,</span><span class="tok-mi">2</span><span class="tok-p">},</span>
+	<span class="tok-p">{</span><span class="tok-mi">3</span><span class="tok-p">,</span><span class="tok-mi">1</span><span class="tok-p">,</span><span class="tok-mi">0</span><span class="tok-p">,</span><span class="tok-mi">2</span><span class="tok-p">},</span>
+	<span class="tok-p">{</span><span class="tok-mi">3</span><span class="tok-p">,</span><span class="tok-mi">0</span><span class="tok-p">,</span><span class="tok-mi">2</span><span class="tok-p">,</span><span class="tok-mi">1</span><span class="tok-p">},</span>
+	<span class="tok-p">{</span><span class="tok-mi">3</span><span class="tok-p">,</span><span class="tok-mi">1</span><span class="tok-p">,</span><span class="tok-mi">2</span><span class="tok-p">,</span><span class="tok-mi">0</span><span class="tok-p">},</span>
+	<span class="tok-p">{</span><span class="tok-mi">3</span><span class="tok-p">,</span><span class="tok-mi">2</span><span class="tok-p">,</span><span class="tok-mi">0</span><span class="tok-p">,</span><span class="tok-mi">1</span><span class="tok-p">},</span>
+	<span class="tok-p">{</span><span class="tok-mi">3</span><span class="tok-p">,</span><span class="tok-mi">2</span><span class="tok-p">,</span><span class="tok-mi">1</span><span class="tok-p">,</span><span class="tok-mi">0</span><span class="tok-p">}};</span>
+	<span class="tok-n">Rect</span> <span class="tok-n">regions</span><span class="tok-p">[</span><span class="tok-mi">4</span><span class="tok-p">];</span>
+	<span class="tok-n">regions</span><span class="tok-p">[</span><span class="tok-mi">0</span><span class="tok-p">]</span><span class="tok-o">=</span><span class="tok-n">Rect</span><span class="tok-p">(</span><span class="tok-mi">0</span><span class="tok-p">,</span><span class="tok-mi">0</span><span class="tok-p">,</span><span class="tok-n">image</span><span class="tok-p">.</span><span class="tok-n">rows</span><span class="tok-o">/</span><span class="tok-mi">2</span><span class="tok-p">,</span><span class="tok-n">image</span><span class="tok-p">.</span><span class="tok-n">cols</span><span class="tok-o">/</span><span class="tok-mi">2</span><span class="tok-p">);</span>
+	<span class="tok-n">regions</span><span class="tok-p">[</span><span class="tok-mi">1</span><span class="tok-p">]</span><span class="tok-o">=</span><span class="tok-n">Rect</span><span class="tok-p">(</span><span class="tok-mi">0</span><span class="tok-p">,</span><span class="tok-mf">0.5</span><span class="tok-o">*</span><span class="tok-n">image</span><span class="tok-p">.</span><span class="tok-n">rows</span><span class="tok-o">-</span><span class="tok-mi">1</span><span class="tok-p">,</span><span class="tok-n">image</span><span class="tok-p">.</span><span class="tok-n">rows</span><span class="tok-o">/</span><span class="tok-mi">2</span><span class="tok-p">,</span><span class="tok-n">image</span><span class="tok-p">.</span><span class="tok-n">cols</span><span class="tok-o">/</span><span class="tok-mi">2</span><span class="tok-p">);</span>
+	<span class="tok-n">regions</span><span class="tok-p">[</span><span class="tok-mi">2</span><span class="tok-p">]</span><span class="tok-o">=</span><span class="tok-n">Rect</span><span class="tok-p">(</span><span class="tok-mf">0.5</span><span class="tok-o">*</span><span class="tok-n">image</span><span class="tok-p">.</span><span class="tok-n">cols</span><span class="tok-o">-</span><span class="tok-mi">1</span><span class="tok-p">,</span><span class="tok-mi">0</span><span class="tok-p">,</span><span class="tok-n">image</span><span class="tok-p">.</span><span class="tok-n">rows</span><span class="tok-o">/</span><span class="tok-mi">2</span><span class="tok-p">,</span><span class="tok-n">image</span><span class="tok-p">.</span><span class="tok-n">cols</span><span class="tok-o">/</span><span class="tok-mi">2</span><span class="tok-p">);</span>
+	<span class="tok-n">regions</span><span class="tok-p">[</span><span class="tok-mi">3</span><span class="tok-p">]</span><span class="tok-o">=</span><span class="tok-n">Rect</span><span class="tok-p">(</span><span class="tok-mf">0.5</span><span class="tok-o">*</span><span class="tok-n">image</span><span class="tok-p">.</span><span class="tok-n">cols</span><span class="tok-o">-</span><span class="tok-mi">1</span><span class="tok-p">,</span><span class="tok-mf">0.5</span><span class="tok-o">*</span><span class="tok-n">image</span><span class="tok-p">.</span><span class="tok-n">rows</span><span class="tok-o">-</span><span class="tok-mi">1</span><span class="tok-p">,</span><span class="tok-n">image</span><span class="tok-p">.</span><span class="tok-n">rows</span><span class="tok-o">/</span><span class="tok-mi">2</span><span class="tok-p">,</span><span class="tok-n">image</span><span class="tok-p">.</span><span class="tok-n">cols</span><span class="tok-o">/</span><span class="tok-mi">2</span><span class="tok-p">);</span>
+	<span class="tok-c1">//Rect is a OpenCV class used to select an image&#39;s region of interest</span>
+	<span class="tok-c1">//the coordinates you give are from the rectangle&#39;s top-left corner</span>
+	<span class="tok-c1">//Rect class constructor : (x coordinate, y coordinate, height, width)</span>
+	<span class="tok-kt">int</span> <span class="tok-n">a</span><span class="tok-p">,</span><span class="tok-n">b</span><span class="tok-p">,</span><span class="tok-n">c</span><span class="tok-p">,</span><span class="tok-n">d</span><span class="tok-p">;</span>
+	<span class="tok-n">a</span><span class="tok-o">=</span><span class="tok-n">probabilities</span><span class="tok-p">[</span><span class="tok-n">random_region</span><span class="tok-p">][</span><span class="tok-mi">0</span><span class="tok-p">];</span>
+	<span class="tok-n">b</span><span class="tok-o">=</span><span class="tok-n">probabilities</span><span class="tok-p">[</span><span class="tok-n">random_region</span><span class="tok-p">][</span><span class="tok-mi">1</span><span class="tok-p">];</span>
+	<span class="tok-n">c</span><span class="tok-o">=</span><span class="tok-n">probabilities</span><span class="tok-p">[</span><span class="tok-n">random_region</span><span class="tok-p">][</span><span class="tok-mi">2</span><span class="tok-p">];</span>
+	<span class="tok-n">d</span><span class="tok-o">=</span><span class="tok-n">probabilities</span><span class="tok-p">[</span><span class="tok-n">random_region</span><span class="tok-p">][</span><span class="tok-mi">3</span><span class="tok-p">];</span>
+	<span class="tok-n">hconcat</span><span class="tok-p">(</span><span class="tok-n">image</span><span class="tok-p">(</span><span class="tok-n">regions</span><span class="tok-p">[</span><span class="tok-n">a</span><span class="tok-p">]),</span><span class="tok-n">image</span><span class="tok-p">(</span><span class="tok-n">regions</span><span class="tok-p">[</span><span class="tok-n">b</span><span class="tok-p">]),</span><span class="tok-n">upper</span><span class="tok-p">);</span> <span class="tok-c1">//horizontal concatenation</span>
+	<span class="tok-n">hconcat</span><span class="tok-p">(</span><span class="tok-n">image</span><span class="tok-p">(</span><span class="tok-n">regions</span><span class="tok-p">[</span><span class="tok-n">c</span><span class="tok-p">]),</span><span class="tok-n">image</span><span class="tok-p">(</span><span class="tok-n">regions</span><span class="tok-p">[</span><span class="tok-n">d</span><span class="tok-p">]),</span><span class="tok-n">lower</span><span class="tok-p">);</span> <span class="tok-c1">//horizontal concatenation</span>
+	<span class="tok-n">vconcat</span><span class="tok-p">(</span><span class="tok-n">upper</span><span class="tok-p">,</span><span class="tok-n">lower</span><span class="tok-p">,</span><span class="tok-n">final_image</span><span class="tok-p">);</span> <span class="tok-c1">//vertical concatenation</span>
+	<span class="tok-n">imshow</span><span class="tok-p">(</span><span class="tok-s">&quot;final_image&quot;</span><span class="tok-p">,</span><span class="tok-n">final_image</span><span class="tok-p">);</span>
+	<span class="tok-n">waitKey</span><span class="tok-p">();</span> <span class="tok-c1">//if you touch any key from the keyboard, the image will be closed</span>
+<span class="tok-p">}</span></code></pre>
 </div>
 </div>
-<div class="paragraph">
-<p>#include &lt;iostream&gt;
-#include &lt;opencv2/opencv.hpp&gt;</p>
 </div>
-<div class="paragraph">
-<p>using namespace std;
-using namespace cv;</p>
-</div>
-<div class="paragraph">
-<p>int main(int argc, char** argv){
-	Mat image;
-	image=imread(argv[1],CV_LOAD_IMAGE_GRAYSCALE);</p>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>unsigned height,width,N_h,N_v;
-height=image.rows;
-width=image.cols;
-cout&lt;&lt;"Height: "&lt;&lt;height&lt;&lt;" Width: "&lt;&lt;width&lt;&lt;endl;
-cout&lt;&lt;"Choose the number of horizontal parts:"&lt;&lt;endl;
-cin&gt;&gt;N_h;
-cout&lt;&lt;"Choose the number of vertical parts:"&lt;&lt;endl;
-cin&gt;&gt;N_v;
-unsigned regions_order[N_v*N_h],i,j,counter=0;
-Rect regions[N_v*N_h];</pre>
-</div>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>for(j=0;j&lt;N_v;j++){
-	for(i=0;i&lt;N_h;i++){
-		Rect R(i*width/N_h,j*height/N_v,width/N_h,height/N_v);
-		regions[counter]=R;
-		counter++;
-	}
-}</pre>
-</div>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>for(i=0;i&lt;N_v*N_h;i++){
-	cout&lt;&lt;"Region: "&lt;&lt;i&lt;&lt;endl;
-	cin&gt;&gt;regions_order[i];
-}</pre>
-</div>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>Mat result(height,width,image.type());</pre>
-</div>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>	counter=0;
-		for(j=0;j&lt;height;j+=height/N_v){
-			for(i=0;i&lt;width;i+=width/N_h){
-				Mat region_of_interest = result(Rect(i,j,width/N_h,height/N_v));
-				image(regions[regions_order[counter]]).copyTo(region_of_interest);
-				counter++;
-		}
-	}
-	namedWindow("original",WINDOW_AUTOSIZE);
-	namedWindow("result",WINDOW_AUTOSIZE);
-	imshow("original",image);
-	imshow("result",result);
-	waitKey(20000);
-}</pre>
-</div>
-</div>
+<div class="sect2">
+<h3 id="_exchange_a_region_letting_the_user_choose_the_order">1.2. Exchange a region (letting the user choose the order)</h3>
 <div class="listingblock">
+<div class="title">superchangeregions.cpp</div>
 <div class="content">
-<pre></pre>
+<pre class="pygments highlight"><code data-lang="cpp"><span class="tok-cp">#include &lt;iostream&gt;</span>
+<span class="tok-cp">#include &lt;opencv2/opencv.hpp&gt;</span>
+
+<span class="tok-k">using</span> <span class="tok-k">namespace</span> <span class="tok-n">std</span><span class="tok-p">;</span>
+<span class="tok-k">using</span> <span class="tok-k">namespace</span> <span class="tok-n">cv</span><span class="tok-p">;</span>
+
+<span class="tok-kt">int</span> <span class="tok-nf">main</span><span class="tok-p">(</span><span class="tok-kt">int</span> <span class="tok-n">argc</span><span class="tok-p">,</span> <span class="tok-kt">char</span><span class="tok-o">**</span> <span class="tok-n">argv</span><span class="tok-p">){</span>
+	<span class="tok-n">Mat</span> <span class="tok-n">image</span><span class="tok-p">;</span>
+	<span class="tok-n">image</span><span class="tok-o">=</span><span class="tok-n">imread</span><span class="tok-p">(</span><span class="tok-n">argv</span><span class="tok-p">[</span><span class="tok-mi">1</span><span class="tok-p">],</span><span class="tok-n">CV_LOAD_IMAGE_GRAYSCALE</span><span class="tok-p">);</span>
+
+	<span class="tok-kt">unsigned</span> <span class="tok-n">height</span><span class="tok-p">,</span><span class="tok-n">width</span><span class="tok-p">,</span><span class="tok-n">N_h</span><span class="tok-p">,</span><span class="tok-n">N_v</span><span class="tok-p">;</span>
+	<span class="tok-n">height</span><span class="tok-o">=</span><span class="tok-n">image</span><span class="tok-p">.</span><span class="tok-n">rows</span><span class="tok-p">;</span>
+	<span class="tok-n">width</span><span class="tok-o">=</span><span class="tok-n">image</span><span class="tok-p">.</span><span class="tok-n">cols</span><span class="tok-p">;</span>
+	<span class="tok-n">cout</span><span class="tok-o">&lt;&lt;</span><span class="tok-s">&quot;Height: &quot;</span><span class="tok-o">&lt;&lt;</span><span class="tok-n">height</span><span class="tok-o">&lt;&lt;</span><span class="tok-s">&quot; Width: &quot;</span><span class="tok-o">&lt;&lt;</span><span class="tok-n">width</span><span class="tok-o">&lt;&lt;</span><span class="tok-n">endl</span><span class="tok-p">;</span>
+	<span class="tok-n">cout</span><span class="tok-o">&lt;&lt;</span><span class="tok-s">&quot;Choose the number of horizontal parts:&quot;</span><span class="tok-o">&lt;&lt;</span><span class="tok-n">endl</span><span class="tok-p">;</span>
+	<span class="tok-n">cin</span><span class="tok-o">&gt;&gt;</span><span class="tok-n">N_h</span><span class="tok-p">;</span>
+	<span class="tok-n">cout</span><span class="tok-o">&lt;&lt;</span><span class="tok-s">&quot;Choose the number of vertical parts:&quot;</span><span class="tok-o">&lt;&lt;</span><span class="tok-n">endl</span><span class="tok-p">;</span>
+	<span class="tok-n">cin</span><span class="tok-o">&gt;&gt;</span><span class="tok-n">N_v</span><span class="tok-p">;</span>
+	<span class="tok-kt">unsigned</span> <span class="tok-n">regions_order</span><span class="tok-p">[</span><span class="tok-n">N_v</span><span class="tok-o">*</span><span class="tok-n">N_h</span><span class="tok-p">],</span><span class="tok-n">i</span><span class="tok-p">,</span><span class="tok-n">j</span><span class="tok-p">,</span><span class="tok-n">counter</span><span class="tok-o">=</span><span class="tok-mi">0</span><span class="tok-p">;</span>
+	<span class="tok-n">Rect</span> <span class="tok-n">regions</span><span class="tok-p">[</span><span class="tok-n">N_v</span><span class="tok-o">*</span><span class="tok-n">N_h</span><span class="tok-p">];</span>
+
+	<span class="tok-k">for</span><span class="tok-p">(</span><span class="tok-n">j</span><span class="tok-o">=</span><span class="tok-mi">0</span><span class="tok-p">;</span><span class="tok-n">j</span><span class="tok-o">&lt;</span><span class="tok-n">N_v</span><span class="tok-p">;</span><span class="tok-n">j</span><span class="tok-o">++</span><span class="tok-p">){</span>
+		<span class="tok-k">for</span><span class="tok-p">(</span><span class="tok-n">i</span><span class="tok-o">=</span><span class="tok-mi">0</span><span class="tok-p">;</span><span class="tok-n">i</span><span class="tok-o">&lt;</span><span class="tok-n">N_h</span><span class="tok-p">;</span><span class="tok-n">i</span><span class="tok-o">++</span><span class="tok-p">){</span>
+			<span class="tok-n">Rect</span> <span class="tok-n">R</span><span class="tok-p">(</span><span class="tok-n">i</span><span class="tok-o">*</span><span class="tok-n">width</span><span class="tok-o">/</span><span class="tok-n">N_h</span><span class="tok-p">,</span><span class="tok-n">j</span><span class="tok-o">*</span><span class="tok-n">height</span><span class="tok-o">/</span><span class="tok-n">N_v</span><span class="tok-p">,</span><span class="tok-n">width</span><span class="tok-o">/</span><span class="tok-n">N_h</span><span class="tok-p">,</span><span class="tok-n">height</span><span class="tok-o">/</span><span class="tok-n">N_v</span><span class="tok-p">);</span>
+			<span class="tok-n">regions</span><span class="tok-p">[</span><span class="tok-n">counter</span><span class="tok-p">]</span><span class="tok-o">=</span><span class="tok-n">R</span><span class="tok-p">;</span>
+			<span class="tok-n">counter</span><span class="tok-o">++</span><span class="tok-p">;</span>
+		<span class="tok-p">}</span>
+	<span class="tok-p">}</span>
+
+
+	<span class="tok-k">for</span><span class="tok-p">(</span><span class="tok-n">i</span><span class="tok-o">=</span><span class="tok-mi">0</span><span class="tok-p">;</span><span class="tok-n">i</span><span class="tok-o">&lt;</span><span class="tok-n">N_v</span><span class="tok-o">*</span><span class="tok-n">N_h</span><span class="tok-p">;</span><span class="tok-n">i</span><span class="tok-o">++</span><span class="tok-p">){</span>
+		<span class="tok-n">cout</span><span class="tok-o">&lt;&lt;</span><span class="tok-s">&quot;Region: &quot;</span><span class="tok-o">&lt;&lt;</span><span class="tok-n">i</span><span class="tok-o">&lt;&lt;</span><span class="tok-n">endl</span><span class="tok-p">;</span>
+		<span class="tok-n">cin</span><span class="tok-o">&gt;&gt;</span><span class="tok-n">regions_order</span><span class="tok-p">[</span><span class="tok-n">i</span><span class="tok-p">];</span>
+	<span class="tok-p">}</span>
+
+	<span class="tok-n">Mat</span> <span class="tok-n">result</span><span class="tok-p">(</span><span class="tok-n">height</span><span class="tok-p">,</span><span class="tok-n">width</span><span class="tok-p">,</span><span class="tok-n">image</span><span class="tok-p">.</span><span class="tok-n">type</span><span class="tok-p">());</span>
+
+	<span class="tok-n">counter</span><span class="tok-o">=</span><span class="tok-mi">0</span><span class="tok-p">;</span>
+		<span class="tok-k">for</span><span class="tok-p">(</span><span class="tok-n">j</span><span class="tok-o">=</span><span class="tok-mi">0</span><span class="tok-p">;</span><span class="tok-n">j</span><span class="tok-o">&lt;</span><span class="tok-n">height</span><span class="tok-p">;</span><span class="tok-n">j</span><span class="tok-o">+=</span><span class="tok-n">height</span><span class="tok-o">/</span><span class="tok-n">N_v</span><span class="tok-p">){</span>
+			<span class="tok-k">for</span><span class="tok-p">(</span><span class="tok-n">i</span><span class="tok-o">=</span><span class="tok-mi">0</span><span class="tok-p">;</span><span class="tok-n">i</span><span class="tok-o">&lt;</span><span class="tok-n">width</span><span class="tok-p">;</span><span class="tok-n">i</span><span class="tok-o">+=</span><span class="tok-n">width</span><span class="tok-o">/</span><span class="tok-n">N_h</span><span class="tok-p">){</span>
+				<span class="tok-n">Mat</span> <span class="tok-n">region_of_interest</span> <span class="tok-o">=</span> <span class="tok-n">result</span><span class="tok-p">(</span><span class="tok-n">Rect</span><span class="tok-p">(</span><span class="tok-n">i</span><span class="tok-p">,</span><span class="tok-n">j</span><span class="tok-p">,</span><span class="tok-n">width</span><span class="tok-o">/</span><span class="tok-n">N_h</span><span class="tok-p">,</span><span class="tok-n">height</span><span class="tok-o">/</span><span class="tok-n">N_v</span><span class="tok-p">));</span>
+				<span class="tok-n">image</span><span class="tok-p">(</span><span class="tok-n">regions</span><span class="tok-p">[</span><span class="tok-n">regions_order</span><span class="tok-p">[</span><span class="tok-n">counter</span><span class="tok-p">]]).</span><span class="tok-n">copyTo</span><span class="tok-p">(</span><span class="tok-n">region_of_interest</span><span class="tok-p">);</span>
+				<span class="tok-n">counter</span><span class="tok-o">++</span><span class="tok-p">;</span>
+		<span class="tok-p">}</span>
+	<span class="tok-p">}</span>
+	<span class="tok-n">namedWindow</span><span class="tok-p">(</span><span class="tok-s">&quot;original&quot;</span><span class="tok-p">,</span><span class="tok-n">WINDOW_AUTOSIZE</span><span class="tok-p">);</span>
+	<span class="tok-n">namedWindow</span><span class="tok-p">(</span><span class="tok-s">&quot;result&quot;</span><span class="tok-p">,</span><span class="tok-n">WINDOW_AUTOSIZE</span><span class="tok-p">);</span>
+	<span class="tok-n">imshow</span><span class="tok-p">(</span><span class="tok-s">&quot;original&quot;</span><span class="tok-p">,</span><span class="tok-n">image</span><span class="tok-p">);</span>
+	<span class="tok-n">imshow</span><span class="tok-p">(</span><span class="tok-s">&quot;result&quot;</span><span class="tok-p">,</span><span class="tok-n">result</span><span class="tok-p">);</span>
+	<span class="tok-n">waitKey</span><span class="tok-p">(</span><span class="tok-mi">20000</span><span class="tok-p">);</span>
+<span class="tok-p">}</span></code></pre>
 </div>
 </div>
 </div>
@@ -675,7 +651,7 @@ Rect regions[N_v*N_h];</pre>
 <div id="footer">
 <div id="footer-text">
 Version <br>
-Last updated 2016-09-17 21:44:49 BRT
+Last updated 2016-09-17 21:47:17 BRT
 </div>
 </div>
 </body>
