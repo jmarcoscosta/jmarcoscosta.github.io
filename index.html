@@ -498,7 +498,9 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_exchanging_regions_negative_images_and_converting_rgb_model_to_greyscale_only_shades_of_grey">1. Exchanging regions, negative images and converting RGB model to greyscale (only shades of grey)</a>
 <ul class="sectlevel2">
 <li><a href="#_exchange_a_region_randomly_way">1.1. Exchange a region (randomly way)</a></li>
-<li><a href="#_exchange_a_region_letting_the_user_choose_the_order">1.2. Exchange a region (letting the user choose the order)</a></li>
+<li><a href="#_exchange_a_region_letting_the_user_choose_the_order_and_number_of_regions">1.2. Exchange a region (letting the user choose the order and number of regions)</a></li>
+<li><a href="#_getting_a_negative_image">1.3. Getting a negative image</a></li>
+<li><a href="#_rgb_to_greyscale">1.4. RGB to Greyscale</a></li>
 </ul>
 </li>
 </ul>
@@ -587,7 +589,10 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 </div>
 <div class="sect2">
-<h3 id="_exchange_a_region_letting_the_user_choose_the_order">1.2. Exchange a region (letting the user choose the order)</h3>
+<h3 id="_exchange_a_region_letting_the_user_choose_the_order_and_number_of_regions">1.2. Exchange a region (letting the user choose the order and number of regions)</h3>
+<div class="paragraph">
+<p>Let&#8217;s see what we get from picking 6 regions, 2 verticals * 3 horizontals and the order 5,0,1,2,4,3.</p>
+</div>
 <div id="app-listing" class="listingblock">
 <div class="title">superchangeregions.cpp</div>
 <div class="content">
@@ -645,13 +650,92 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 </div>
 </div>
+<div class="sect2">
+<h3 id="_getting_a_negative_image">1.3. Getting a negative image</h3>
+<div class="paragraph">
+<p>A pixel&#8217;s negative is the difference between the pixel&#8217;s value and 255 (maximum value). It works for the RGB model and greyscale as well. Basically, you change the current value by <em>how many shades you need for 255</em>. Example:
+Pixel value is: 100
+Negative is : 255-100=155</p>
+</div>
+<div id="app-listing" class="listingblock">
+<div class="title">negative.cpp</div>
+<div class="content">
+<pre class="pygments highlight"><code data-lang="cpp"><span class="tok-cp">#include &lt;iostream&gt;</span>
+<span class="tok-cp">#include &lt;opencv2/opencv.hpp&gt;</span>
+
+<span class="tok-k">using</span> <span class="tok-k">namespace</span> <span class="tok-n">std</span><span class="tok-p">;</span>
+<span class="tok-k">using</span> <span class="tok-k">namespace</span> <span class="tok-n">cv</span><span class="tok-p">;</span>
+
+<span class="tok-kt">int</span> <span class="tok-nf">main</span><span class="tok-p">(</span><span class="tok-kt">int</span> <span class="tok-n">argc</span><span class="tok-p">,</span> <span class="tok-kt">char</span><span class="tok-o">**</span> <span class="tok-n">argv</span><span class="tok-p">){</span>
+	<span class="tok-n">Mat</span> <span class="tok-n">image</span><span class="tok-p">;</span>
+	<span class="tok-n">CvPoint</span> <span class="tok-n">point1</span><span class="tok-p">,</span> <span class="tok-n">point2</span><span class="tok-p">;</span>
+	<span class="tok-kt">int</span> <span class="tok-n">height</span><span class="tok-p">,</span><span class="tok-n">width</span><span class="tok-p">,</span><span class="tok-n">negative</span><span class="tok-p">,</span><span class="tok-n">i</span><span class="tok-p">,</span><span class="tok-n">j</span><span class="tok-p">;</span>
+
+	<span class="tok-n">image</span><span class="tok-o">=</span><span class="tok-n">imread</span><span class="tok-p">(</span><span class="tok-n">argv</span><span class="tok-p">[</span><span class="tok-mi">1</span><span class="tok-p">],</span><span class="tok-n">CV_LOAD_IMAGE_GRAYSCALE</span><span class="tok-p">);</span>
+	<span class="tok-n">height</span><span class="tok-o">=</span><span class="tok-n">image</span><span class="tok-p">.</span><span class="tok-n">rows</span><span class="tok-p">;</span>
+	<span class="tok-n">width</span><span class="tok-o">=</span><span class="tok-n">image</span><span class="tok-p">.</span><span class="tok-n">cols</span><span class="tok-p">;</span>
+
+	<span class="tok-n">cout</span><span class="tok-o">&lt;&lt;</span><span class="tok-s">&quot;Height:&quot;</span><span class="tok-o">&lt;&lt;</span><span class="tok-n">height</span><span class="tok-o">&lt;&lt;</span><span class="tok-s">&quot; Width:&quot;</span><span class="tok-o">&lt;&lt;</span><span class="tok-n">width</span><span class="tok-o">&lt;&lt;</span><span class="tok-n">endl</span><span class="tok-p">;</span>
+
+	<span class="tok-n">cin</span><span class="tok-o">&gt;&gt;</span><span class="tok-n">point1</span><span class="tok-p">.</span><span class="tok-n">x</span><span class="tok-p">;</span>
+	<span class="tok-n">cin</span><span class="tok-o">&gt;&gt;</span><span class="tok-n">point1</span><span class="tok-p">.</span><span class="tok-n">y</span><span class="tok-p">;</span>
+	<span class="tok-n">cin</span><span class="tok-o">&gt;&gt;</span><span class="tok-n">point2</span><span class="tok-p">.</span><span class="tok-n">x</span><span class="tok-p">;</span>
+	<span class="tok-n">cin</span><span class="tok-o">&gt;&gt;</span><span class="tok-n">point2</span><span class="tok-p">.</span><span class="tok-n">y</span><span class="tok-p">;</span>
+
+	<span class="tok-k">for</span><span class="tok-p">(</span><span class="tok-n">i</span><span class="tok-o">=</span><span class="tok-n">point1</span><span class="tok-p">.</span><span class="tok-n">y</span><span class="tok-p">;</span><span class="tok-n">i</span><span class="tok-o">&lt;=</span><span class="tok-n">point2</span><span class="tok-p">.</span><span class="tok-n">y</span><span class="tok-o">+</span><span class="tok-mi">1</span><span class="tok-p">;</span><span class="tok-n">i</span><span class="tok-o">++</span><span class="tok-p">){</span>
+		<span class="tok-k">for</span><span class="tok-p">(</span><span class="tok-n">j</span><span class="tok-o">=</span><span class="tok-n">point1</span><span class="tok-p">.</span><span class="tok-n">x</span><span class="tok-p">;</span><span class="tok-n">j</span><span class="tok-o">&lt;=</span><span class="tok-n">point2</span><span class="tok-p">.</span><span class="tok-n">x</span><span class="tok-o">+</span><span class="tok-mi">1</span><span class="tok-p">;</span><span class="tok-n">j</span><span class="tok-o">++</span><span class="tok-p">){</span>
+			<span class="tok-n">negative</span><span class="tok-o">=</span><span class="tok-mi">255</span><span class="tok-o">-</span><span class="tok-kt">int</span><span class="tok-p">(</span><span class="tok-n">image</span><span class="tok-p">.</span><span class="tok-n">at</span><span class="tok-o">&lt;</span><span class="tok-n">uchar</span><span class="tok-o">&gt;</span><span class="tok-p">(</span><span class="tok-n">i</span><span class="tok-p">,</span><span class="tok-n">j</span><span class="tok-p">));</span>
+			<span class="tok-n">image</span><span class="tok-p">.</span><span class="tok-n">at</span><span class="tok-o">&lt;</span><span class="tok-n">uchar</span><span class="tok-o">&gt;</span><span class="tok-p">(</span><span class="tok-n">i</span><span class="tok-p">,</span><span class="tok-n">j</span><span class="tok-p">)</span><span class="tok-o">=</span><span class="tok-n">negative</span><span class="tok-p">;</span>
+		<span class="tok-p">}</span>
+	<span class="tok-p">}</span>
+
+	<span class="tok-n">imshow</span><span class="tok-p">(</span><span class="tok-s">&quot;Negative&quot;</span><span class="tok-p">,</span><span class="tok-n">image</span><span class="tok-p">);</span>
+	<span class="tok-n">waitKey</span><span class="tok-p">(</span><span class="tok-mi">5000</span><span class="tok-p">);</span>
+	<span class="tok-k">return</span> <span class="tok-mi">0</span><span class="tok-p">;</span>
+<span class="tok-p">}</span></code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_rgb_to_greyscale">1.4. RGB to Greyscale</h3>
+<div class="paragraph">
+<p>This conversion is based on the human eye sensibility for primary colors: Red, Green and Blue. So, you&#8217;ll need to get the red, blue and green values, take a part of them and sum those parts. The parts are:
+30% from Red + 59% from Green + 11% from Blue = Shade of grey</p>
+</div>
+<div id="app-listing" class="listingblock">
+<div class="title">rgbtogrey.cpp</div>
+<div class="content">
+<pre class="pygments highlight"><code data-lang="cpp"><span class="tok-cp">#include &lt;iostream&gt;</span>
+<span class="tok-cp">#include &lt;opencv2/opencv.hpp&gt;</span>
+
+<span class="tok-k">using</span> <span class="tok-k">namespace</span> <span class="tok-n">std</span><span class="tok-p">;</span>
+<span class="tok-k">using</span> <span class="tok-k">namespace</span> <span class="tok-n">cv</span><span class="tok-p">;</span>
+
+<span class="tok-kt">int</span> <span class="tok-nf">main</span><span class="tok-p">(</span><span class="tok-kt">int</span> <span class="tok-n">argc</span><span class="tok-p">,</span> <span class="tok-kt">char</span><span class="tok-o">**</span> <span class="tok-n">argv</span><span class="tok-p">){</span>
+	<span class="tok-n">Mat</span> <span class="tok-n">colored_image</span><span class="tok-p">;</span>
+	<span class="tok-n">colored_image</span><span class="tok-o">=</span><span class="tok-n">imread</span><span class="tok-p">(</span><span class="tok-n">argv</span><span class="tok-p">[</span><span class="tok-mi">1</span><span class="tok-p">],</span><span class="tok-n">CV_LOAD_IMAGE_COLOR</span><span class="tok-p">);</span>
+	<span class="tok-n">Mat</span> <span class="tok-n">greyscale_image</span><span class="tok-p">(</span><span class="tok-n">colored_image</span><span class="tok-p">.</span><span class="tok-n">rows</span><span class="tok-p">,</span><span class="tok-n">colored_image</span><span class="tok-p">.</span><span class="tok-n">cols</span><span class="tok-p">,</span><span class="tok-mi">0</span><span class="tok-p">);</span>
+	<span class="tok-k">typedef</span> <span class="tok-n">Vec</span><span class="tok-o">&lt;</span><span class="tok-n">uchar</span><span class="tok-p">,</span><span class="tok-mi">3</span><span class="tok-o">&gt;</span> <span class="tok-n">Vec3b</span><span class="tok-p">;</span>
+	<span class="tok-n">Vec3b</span> <span class="tok-n">color</span><span class="tok-p">;</span>
+	<span class="tok-k">for</span><span class="tok-p">(</span><span class="tok-kt">int</span> <span class="tok-n">i</span><span class="tok-o">=</span><span class="tok-mi">0</span><span class="tok-p">;</span><span class="tok-n">i</span><span class="tok-o">&lt;</span><span class="tok-n">colored_image</span><span class="tok-p">.</span><span class="tok-n">rows</span><span class="tok-p">;</span><span class="tok-n">i</span><span class="tok-o">++</span><span class="tok-p">){</span>
+		<span class="tok-k">for</span><span class="tok-p">(</span><span class="tok-kt">int</span> <span class="tok-n">j</span><span class="tok-o">=</span><span class="tok-mi">0</span><span class="tok-p">;</span><span class="tok-n">j</span><span class="tok-o">&lt;</span><span class="tok-n">colored_image</span><span class="tok-p">.</span><span class="tok-n">cols</span><span class="tok-p">;</span><span class="tok-n">j</span><span class="tok-o">++</span><span class="tok-p">){</span>
+			<span class="tok-n">color</span><span class="tok-o">=</span><span class="tok-n">colored_image</span><span class="tok-p">.</span><span class="tok-n">at</span><span class="tok-o">&lt;</span><span class="tok-n">Vec3b</span><span class="tok-o">&gt;</span><span class="tok-p">(</span><span class="tok-n">i</span><span class="tok-p">,</span><span class="tok-n">j</span><span class="tok-p">);</span>
+			<span class="tok-n">greyscale_image</span><span class="tok-p">.</span><span class="tok-n">at</span><span class="tok-o">&lt;</span><span class="tok-n">uchar</span><span class="tok-o">&gt;</span><span class="tok-p">(</span><span class="tok-n">i</span><span class="tok-p">,</span><span class="tok-n">j</span><span class="tok-p">)</span><span class="tok-o">=</span><span class="tok-n">color</span><span class="tok-p">[</span><span class="tok-mi">0</span><span class="tok-p">]</span><span class="tok-o">*</span><span class="tok-mf">0.11</span> <span class="tok-o">+</span> <span class="tok-n">color</span><span class="tok-p">[</span><span class="tok-mi">1</span><span class="tok-p">]</span><span class="tok-o">*</span><span class="tok-mf">.59</span> <span class="tok-o">+</span><span class="tok-n">color</span><span class="tok-p">[</span><span class="tok-mi">2</span><span class="tok-p">]</span><span class="tok-o">*</span><span class="tok-mf">0.30</span><span class="tok-p">;</span>
+		<span class="tok-p">}</span>
+	<span class="tok-p">}</span>
+	<span class="tok-n">imshow</span><span class="tok-p">(</span><span class="tok-s">&quot;Greyscale Image&quot;</span><span class="tok-p">,</span><span class="tok-n">greyscale_image</span><span class="tok-p">);</span>
+	<span class="tok-n">waitKey</span><span class="tok-p">(</span><span class="tok-mi">5000</span><span class="tok-p">);</span>
+<span class="tok-p">}</span></code></pre>
+</div>
+</div>
+</div>
 </div>
 </div>
 </div>
 <div id="footer">
 <div id="footer-text">
 Version <br>
-Last updated 2016-09-17 21:48:49 BRT
+Last updated 2016-09-17 22:08:47 BRT
 </div>
 </div>
 </body>
