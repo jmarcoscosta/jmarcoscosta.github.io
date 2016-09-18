@@ -506,11 +506,11 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_identifying_counting_and_labeling_regions_using_the_same_algorithm">2. Identifying, counting and labeling regions (using the same algorithm)</a>
 <ul class="sectlevel2">
 <li><a href="#_seedfill">2.1. Seedfill</a></li>
+<li><a href="#_seedfill_implementation">2.2. Seedfill implementation</a></li>
+<li><a href="#_what_if_i_have_more_than_255_regions_at_my_picture">2.3. What if I have more than 255 regions at my picture?</a></li>
+<li><a href="#_identifying_regions_with_holes">2.4. Identifying regions with holes</a></li>
 </ul>
 </li>
-<li><a href="#_seedfill_implementation">3. Seedfill implementation</a></li>
-<li><a href="#_what_if_i_have_more_than_255_regions_at_my_picture">4. What if I have more than 255 regions at my picture?</a></li>
-<li><a href="#_identifying_regions_with_holes">5. Identifying regions with holes</a></li>
 </ul>
 </div>
 </div>
@@ -796,11 +796,8 @@ Negative is : 255-100=155</p>
 </div>
 </div>
 </div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_seedfill_implementation">3. Seedfill implementation</h2>
-<div class="sectionbody">
+<div class="sect2">
+<h3 id="_seedfill_implementation">2.2. Seedfill implementation</h3>
 <div id="app-listing" class="listingblock">
 <div class="title">implementation.cpp</div>
 <div class="content">
@@ -849,10 +846,8 @@ Negative is : 255-100=155</p>
 </div>
 </div>
 </div>
-</div>
-<div class="sect1">
-<h2 id="_what_if_i_have_more_than_255_regions_at_my_picture">4. What if I have more than 255 regions at my picture?</h2>
-<div class="sectionbody">
+<div class="sect2">
+<h3 id="_what_if_i_have_more_than_255_regions_at_my_picture">2.3. What if I have more than 255 regions at my picture?</h3>
 <div class="paragraph">
 <p>Well, Seedfill labels a white regions with the current label. What does it mean? It means that a white (255) region becomes 45 (a "darker" shade of grey) if the algorithm has already counted 45 white regions at the image. But the maximum value is 255, so we can&#8217;t have a "whiter" white. I have a tip for people who face such problem: convert the label value, wich is represented in <em>decimal base</em> to an 6 algarism number in <em>hexadecimal base</em>. After this, you will convert your hexadecimal number into an RGB value. The first pair of digits will be used for red color, the middle pair for blue color, and the third pair for green color.
 Example:
@@ -867,10 +862,8 @@ D9(hexadecimal) equals to 217 (decimal)
 <p>"00" for red, "D9" for blue and "77" for green. Doing this version of "pseudo color", we will identify the white labeled regions by (pseudo)colored patterns, instead of a darker shade of grey (as we did before).</p>
 </div>
 </div>
-</div>
-<div class="sect1">
-<h2 id="_identifying_regions_with_holes">5. Identifying regions with holes</h2>
-<div class="sectionbody">
+<div class="sect2">
+<h3 id="_identifying_regions_with_holes">2.4. Identifying regions with holes</h3>
 <div class="paragraph">
 <p>This code is a bit more rough to understand&#8230;&#8203;First of all, we need to cut off the border touching regions, because you can&#8217;t know if the region has another not-shown holes. Didn&#8217;t get it? Imagine this: you are taking a picture of a way too big carpet, and this picture shows only a part of it. The border-touching bubbles may or may not have a hole, and you don&#8217;t know it for sure because you didn&#8217;t capture the complete bubble. Let me put this in another way: by taking the photo, may have taken a picture of a peculiar bubble with a full white half and another hollowed half. Since the picture only shows the full white half, you think the bubble is completely white, BUT IT IS NOT! After cutting those tricky bubbles, we need to use seedfill to label the background with a different color of the holes, wich are, at first place, all black. After this, we indentify (and delete, if necessary) the hollowed bubbles.</p>
 </div>
@@ -1108,10 +1101,11 @@ D9(hexadecimal) equals to 217 (decimal)
 </div>
 </div>
 </div>
+</div>
 <div id="footer">
 <div id="footer-text">
 Version <br>
-Last updated 2016-09-17 23:43:30 BRT
+Last updated 2016-09-17 23:45:02 BRT
 </div>
 </div>
 </body>
