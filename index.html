@@ -535,6 +535,12 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="paragraph">
 <p>We index the regions from left to right and top to bottom, as it is shown above.</p>
 </div>
+<div class="imageblock">
+<div class="content">
+<img src="cheregions.jpg" alt="cheregions">
+</div>
+<div class="title">Figure 1. Indexed regions</div>
+</div>
 <div id="app-listing" class="listingblock">
 <div class="title">random.cpp</div>
 <div class="content">
@@ -550,6 +556,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 	<span class="tok-n">image</span><span class="tok-o">=</span><span class="tok-n">imread</span><span class="tok-p">(</span><span class="tok-n">argv</span><span class="tok-p">[</span><span class="tok-mi">1</span><span class="tok-p">],</span><span class="tok-n">CV_LOAD_IMAGE_GRAYSCALE</span><span class="tok-p">);</span>
 	<span class="tok-n">srand</span><span class="tok-p">(</span><span class="tok-n">time</span><span class="tok-p">(</span><span class="tok-nb">NULL</span><span class="tok-p">));</span> <span class="tok-c1">//doing this, every time you execute the code, the random number will be different</span>
 	<span class="tok-kt">int</span> <span class="tok-n">random_region</span><span class="tok-o">=</span> <span class="tok-n">rand</span><span class="tok-p">()</span> <span class="tok-o">%</span> <span class="tok-mi">24</span><span class="tok-p">;</span> <span class="tok-c1">//generates a random number from 0 to 23</span>
+	<span class="tok-kt">int</span> <span class="tok-n">width</span><span class="tok-p">,</span><span class="tok-n">height</span><span class="tok-p">;</span>
 	<span class="tok-kt">int</span> <span class="tok-n">possibilities</span><span class="tok-p">[</span><span class="tok-mi">24</span><span class="tok-p">][</span><span class="tok-mi">5</span><span class="tok-p">]</span><span class="tok-o">=</span><span class="tok-p">{</span>
 	<span class="tok-p">{</span><span class="tok-mi">0</span><span class="tok-p">,</span><span class="tok-mi">1</span><span class="tok-p">,</span><span class="tok-mi">2</span><span class="tok-p">,</span><span class="tok-mi">3</span><span class="tok-p">},</span> <span class="tok-c1">//each row represents a sequence of the four regions</span>
 	<span class="tok-p">{</span><span class="tok-mi">0</span><span class="tok-p">,</span><span class="tok-mi">2</span><span class="tok-p">,</span><span class="tok-mi">1</span><span class="tok-p">,</span><span class="tok-mi">3</span><span class="tok-p">},</span>
@@ -575,32 +582,56 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 	<span class="tok-p">{</span><span class="tok-mi">3</span><span class="tok-p">,</span><span class="tok-mi">1</span><span class="tok-p">,</span><span class="tok-mi">2</span><span class="tok-p">,</span><span class="tok-mi">0</span><span class="tok-p">},</span>
 	<span class="tok-p">{</span><span class="tok-mi">3</span><span class="tok-p">,</span><span class="tok-mi">2</span><span class="tok-p">,</span><span class="tok-mi">0</span><span class="tok-p">,</span><span class="tok-mi">1</span><span class="tok-p">},</span>
 	<span class="tok-p">{</span><span class="tok-mi">3</span><span class="tok-p">,</span><span class="tok-mi">2</span><span class="tok-p">,</span><span class="tok-mi">1</span><span class="tok-p">,</span><span class="tok-mi">0</span><span class="tok-p">}};</span>
+	<span class="tok-n">height</span><span class="tok-o">=</span><span class="tok-n">image</span><span class="tok-p">.</span><span class="tok-n">size</span><span class="tok-p">().</span><span class="tok-n">height</span><span class="tok-p">;</span>
+	<span class="tok-n">width</span><span class="tok-o">=</span><span class="tok-n">image</span><span class="tok-p">.</span><span class="tok-n">size</span><span class="tok-p">().</span><span class="tok-n">width</span><span class="tok-p">;</span>
 	<span class="tok-n">Rect</span> <span class="tok-n">regions</span><span class="tok-p">[</span><span class="tok-mi">4</span><span class="tok-p">];</span>
-	<span class="tok-n">regions</span><span class="tok-p">[</span><span class="tok-mi">0</span><span class="tok-p">]</span><span class="tok-o">=</span><span class="tok-n">Rect</span><span class="tok-p">(</span><span class="tok-mi">0</span><span class="tok-p">,</span><span class="tok-mi">0</span><span class="tok-p">,</span><span class="tok-n">image</span><span class="tok-p">.</span><span class="tok-n">rows</span><span class="tok-o">/</span><span class="tok-mi">2</span><span class="tok-p">,</span><span class="tok-n">image</span><span class="tok-p">.</span><span class="tok-n">cols</span><span class="tok-o">/</span><span class="tok-mi">2</span><span class="tok-p">);</span>
-	<span class="tok-n">regions</span><span class="tok-p">[</span><span class="tok-mi">1</span><span class="tok-p">]</span><span class="tok-o">=</span><span class="tok-n">Rect</span><span class="tok-p">(</span><span class="tok-mi">0</span><span class="tok-p">,</span><span class="tok-mf">0.5</span><span class="tok-o">*</span><span class="tok-n">image</span><span class="tok-p">.</span><span class="tok-n">rows</span><span class="tok-o">-</span><span class="tok-mi">1</span><span class="tok-p">,</span><span class="tok-n">image</span><span class="tok-p">.</span><span class="tok-n">rows</span><span class="tok-o">/</span><span class="tok-mi">2</span><span class="tok-p">,</span><span class="tok-n">image</span><span class="tok-p">.</span><span class="tok-n">cols</span><span class="tok-o">/</span><span class="tok-mi">2</span><span class="tok-p">);</span>
-	<span class="tok-n">regions</span><span class="tok-p">[</span><span class="tok-mi">2</span><span class="tok-p">]</span><span class="tok-o">=</span><span class="tok-n">Rect</span><span class="tok-p">(</span><span class="tok-mf">0.5</span><span class="tok-o">*</span><span class="tok-n">image</span><span class="tok-p">.</span><span class="tok-n">cols</span><span class="tok-o">-</span><span class="tok-mi">1</span><span class="tok-p">,</span><span class="tok-mi">0</span><span class="tok-p">,</span><span class="tok-n">image</span><span class="tok-p">.</span><span class="tok-n">rows</span><span class="tok-o">/</span><span class="tok-mi">2</span><span class="tok-p">,</span><span class="tok-n">image</span><span class="tok-p">.</span><span class="tok-n">cols</span><span class="tok-o">/</span><span class="tok-mi">2</span><span class="tok-p">);</span>
-	<span class="tok-n">regions</span><span class="tok-p">[</span><span class="tok-mi">3</span><span class="tok-p">]</span><span class="tok-o">=</span><span class="tok-n">Rect</span><span class="tok-p">(</span><span class="tok-mf">0.5</span><span class="tok-o">*</span><span class="tok-n">image</span><span class="tok-p">.</span><span class="tok-n">cols</span><span class="tok-o">-</span><span class="tok-mi">1</span><span class="tok-p">,</span><span class="tok-mf">0.5</span><span class="tok-o">*</span><span class="tok-n">image</span><span class="tok-p">.</span><span class="tok-n">rows</span><span class="tok-o">-</span><span class="tok-mi">1</span><span class="tok-p">,</span><span class="tok-n">image</span><span class="tok-p">.</span><span class="tok-n">rows</span><span class="tok-o">/</span><span class="tok-mi">2</span><span class="tok-p">,</span><span class="tok-n">image</span><span class="tok-p">.</span><span class="tok-n">cols</span><span class="tok-o">/</span><span class="tok-mi">2</span><span class="tok-p">);</span>
+	<span class="tok-n">regions</span><span class="tok-p">[</span><span class="tok-mi">0</span><span class="tok-p">]</span><span class="tok-o">=</span><span class="tok-n">Rect</span><span class="tok-p">(</span><span class="tok-mi">0</span><span class="tok-p">,</span><span class="tok-mi">0</span><span class="tok-p">,</span><span class="tok-n">width</span><span class="tok-o">/</span><span class="tok-mi">2</span><span class="tok-p">,</span><span class="tok-n">height</span><span class="tok-o">/</span><span class="tok-mi">2</span><span class="tok-p">);</span>
+	<span class="tok-n">regions</span><span class="tok-p">[</span><span class="tok-mi">1</span><span class="tok-p">]</span><span class="tok-o">=</span><span class="tok-n">Rect</span><span class="tok-p">(</span><span class="tok-n">width</span><span class="tok-o">/</span><span class="tok-mi">2</span><span class="tok-p">,</span><span class="tok-mi">0</span><span class="tok-p">,</span><span class="tok-n">width</span><span class="tok-o">/</span><span class="tok-mi">2</span><span class="tok-p">,</span><span class="tok-n">height</span><span class="tok-o">/</span><span class="tok-mi">2</span><span class="tok-p">);</span>
+	<span class="tok-n">regions</span><span class="tok-p">[</span><span class="tok-mi">2</span><span class="tok-p">]</span><span class="tok-o">=</span><span class="tok-n">Rect</span><span class="tok-p">(</span><span class="tok-mi">0</span><span class="tok-p">,</span><span class="tok-n">height</span><span class="tok-o">/</span><span class="tok-mi">2</span><span class="tok-p">,</span><span class="tok-n">width</span><span class="tok-o">/</span><span class="tok-mi">2</span><span class="tok-p">,</span><span class="tok-n">height</span><span class="tok-o">/</span><span class="tok-mi">2</span><span class="tok-p">);</span>
+	<span class="tok-n">regions</span><span class="tok-p">[</span><span class="tok-mi">3</span><span class="tok-p">]</span><span class="tok-o">=</span><span class="tok-n">Rect</span><span class="tok-p">(</span><span class="tok-n">width</span><span class="tok-o">/</span><span class="tok-mi">2</span><span class="tok-p">,</span><span class="tok-n">height</span><span class="tok-o">/</span><span class="tok-mi">2</span><span class="tok-p">,</span><span class="tok-n">width</span><span class="tok-o">/</span><span class="tok-mi">2</span><span class="tok-p">,</span><span class="tok-n">height</span><span class="tok-o">/</span><span class="tok-mi">2</span><span class="tok-p">);</span>
 	<span class="tok-c1">//Rect is a OpenCV class used to select an image&#39;s region of interest</span>
 	<span class="tok-c1">//the coordinates you give are from the rectangle&#39;s top-left corner</span>
 	<span class="tok-c1">//Rect class constructor : (x coordinate, y coordinate, height, width)</span>
 	<span class="tok-kt">int</span> <span class="tok-n">a</span><span class="tok-p">,</span><span class="tok-n">b</span><span class="tok-p">,</span><span class="tok-n">c</span><span class="tok-p">,</span><span class="tok-n">d</span><span class="tok-p">;</span>
-	<span class="tok-n">a</span><span class="tok-o">=</span><span class="tok-n">probabilities</span><span class="tok-p">[</span><span class="tok-n">random_region</span><span class="tok-p">][</span><span class="tok-mi">0</span><span class="tok-p">];</span>
-	<span class="tok-n">b</span><span class="tok-o">=</span><span class="tok-n">probabilities</span><span class="tok-p">[</span><span class="tok-n">random_region</span><span class="tok-p">][</span><span class="tok-mi">1</span><span class="tok-p">];</span>
-	<span class="tok-n">c</span><span class="tok-o">=</span><span class="tok-n">probabilities</span><span class="tok-p">[</span><span class="tok-n">random_region</span><span class="tok-p">][</span><span class="tok-mi">2</span><span class="tok-p">];</span>
-	<span class="tok-n">d</span><span class="tok-o">=</span><span class="tok-n">probabilities</span><span class="tok-p">[</span><span class="tok-n">random_region</span><span class="tok-p">][</span><span class="tok-mi">3</span><span class="tok-p">];</span>
+	<span class="tok-n">a</span><span class="tok-o">=</span><span class="tok-n">possibilities</span><span class="tok-p">[</span><span class="tok-n">random_region</span><span class="tok-p">][</span><span class="tok-mi">0</span><span class="tok-p">];</span>
+	<span class="tok-n">b</span><span class="tok-o">=</span><span class="tok-n">possibilities</span><span class="tok-p">[</span><span class="tok-n">random_region</span><span class="tok-p">][</span><span class="tok-mi">1</span><span class="tok-p">];</span>
+	<span class="tok-n">c</span><span class="tok-o">=</span><span class="tok-n">possibilities</span><span class="tok-p">[</span><span class="tok-n">random_region</span><span class="tok-p">][</span><span class="tok-mi">2</span><span class="tok-p">];</span>
+	<span class="tok-n">d</span><span class="tok-o">=</span><span class="tok-n">possibilities</span><span class="tok-p">[</span><span class="tok-n">random_region</span><span class="tok-p">][</span><span class="tok-mi">3</span><span class="tok-p">];</span>
 	<span class="tok-n">hconcat</span><span class="tok-p">(</span><span class="tok-n">image</span><span class="tok-p">(</span><span class="tok-n">regions</span><span class="tok-p">[</span><span class="tok-n">a</span><span class="tok-p">]),</span><span class="tok-n">image</span><span class="tok-p">(</span><span class="tok-n">regions</span><span class="tok-p">[</span><span class="tok-n">b</span><span class="tok-p">]),</span><span class="tok-n">upper</span><span class="tok-p">);</span> <span class="tok-c1">//horizontal concatenation</span>
 	<span class="tok-n">hconcat</span><span class="tok-p">(</span><span class="tok-n">image</span><span class="tok-p">(</span><span class="tok-n">regions</span><span class="tok-p">[</span><span class="tok-n">c</span><span class="tok-p">]),</span><span class="tok-n">image</span><span class="tok-p">(</span><span class="tok-n">regions</span><span class="tok-p">[</span><span class="tok-n">d</span><span class="tok-p">]),</span><span class="tok-n">lower</span><span class="tok-p">);</span> <span class="tok-c1">//horizontal concatenation</span>
 	<span class="tok-n">vconcat</span><span class="tok-p">(</span><span class="tok-n">upper</span><span class="tok-p">,</span><span class="tok-n">lower</span><span class="tok-p">,</span><span class="tok-n">final_image</span><span class="tok-p">);</span> <span class="tok-c1">//vertical concatenation</span>
 	<span class="tok-n">imshow</span><span class="tok-p">(</span><span class="tok-s">&quot;final_image&quot;</span><span class="tok-p">,</span><span class="tok-n">final_image</span><span class="tok-p">);</span>
+	<span class="tok-n">imwrite</span><span class="tok-p">(</span><span class="tok-s">&quot;changed.jpg&quot;</span><span class="tok-p">,</span><span class="tok-n">final_image</span><span class="tok-p">);</span>
 	<span class="tok-n">waitKey</span><span class="tok-p">();</span> <span class="tok-c1">//if you touch any key from the keyboard, the image will be closed</span>
 <span class="tok-p">}</span></code></pre>
 </div>
+</div>
+<div class="paragraph">
+<p>Executing the algorithm, we can get:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="changed.jpg" alt="changed">
+</div>
+<div class="title">Figure 2. Random exchanging</div>
 </div>
 </div>
 <div class="sect2">
 <h3 id="_exchange_a_region_letting_the_user_choose_the_order_and_number_of_regions">1.2. Exchange a region (letting the user choose the order and number of regions)</h3>
 <div class="paragraph">
 <p>Let&#8217;s see what we get from picking 6 regions, 2 verticals * 3 horizontals and the order 5,0,1,2,4,3.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="che.jpg" alt="che">
+</div>
+<div class="title">Figure 3. Original</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="result.jpg" alt="result">
+</div>
+<div class="title">Figure 4. Order: 5,0,1,2,4,3. 3 verticals and 2 horizontals</div>
 </div>
 <div id="app-listing" class="listingblock">
 <div class="title">superchangeregions.cpp</div>
@@ -616,8 +647,8 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 	<span class="tok-n">image</span><span class="tok-o">=</span><span class="tok-n">imread</span><span class="tok-p">(</span><span class="tok-n">argv</span><span class="tok-p">[</span><span class="tok-mi">1</span><span class="tok-p">],</span><span class="tok-n">CV_LOAD_IMAGE_GRAYSCALE</span><span class="tok-p">);</span>
 
 	<span class="tok-kt">unsigned</span> <span class="tok-n">height</span><span class="tok-p">,</span><span class="tok-n">width</span><span class="tok-p">,</span><span class="tok-n">N_h</span><span class="tok-p">,</span><span class="tok-n">N_v</span><span class="tok-p">;</span>
-	<span class="tok-n">height</span><span class="tok-o">=</span><span class="tok-n">image</span><span class="tok-p">.</span><span class="tok-n">rows</span><span class="tok-p">;</span>
-	<span class="tok-n">width</span><span class="tok-o">=</span><span class="tok-n">image</span><span class="tok-p">.</span><span class="tok-n">cols</span><span class="tok-p">;</span>
+	<span class="tok-n">height</span><span class="tok-o">=</span><span class="tok-n">image</span><span class="tok-p">.</span><span class="tok-n">size</span><span class="tok-p">().</span><span class="tok-n">height</span><span class="tok-p">;</span>
+	<span class="tok-n">width</span><span class="tok-o">=</span><span class="tok-n">image</span><span class="tok-p">.</span><span class="tok-n">size</span><span class="tok-p">().</span><span class="tok-n">width</span><span class="tok-p">;</span>
 	<span class="tok-n">cout</span><span class="tok-o">&lt;&lt;</span><span class="tok-s">&quot;Height: &quot;</span><span class="tok-o">&lt;&lt;</span><span class="tok-n">height</span><span class="tok-o">&lt;&lt;</span><span class="tok-s">&quot; Width: &quot;</span><span class="tok-o">&lt;&lt;</span><span class="tok-n">width</span><span class="tok-o">&lt;&lt;</span><span class="tok-n">endl</span><span class="tok-p">;</span>
 	<span class="tok-n">cout</span><span class="tok-o">&lt;&lt;</span><span class="tok-s">&quot;Choose the number of horizontal parts:&quot;</span><span class="tok-o">&lt;&lt;</span><span class="tok-n">endl</span><span class="tok-p">;</span>
 	<span class="tok-n">cin</span><span class="tok-o">&gt;&gt;</span><span class="tok-n">N_h</span><span class="tok-p">;</span>
@@ -654,6 +685,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 	<span class="tok-n">namedWindow</span><span class="tok-p">(</span><span class="tok-s">&quot;result&quot;</span><span class="tok-p">,</span><span class="tok-n">WINDOW_AUTOSIZE</span><span class="tok-p">);</span>
 	<span class="tok-n">imshow</span><span class="tok-p">(</span><span class="tok-s">&quot;original&quot;</span><span class="tok-p">,</span><span class="tok-n">image</span><span class="tok-p">);</span>
 	<span class="tok-n">imshow</span><span class="tok-p">(</span><span class="tok-s">&quot;result&quot;</span><span class="tok-p">,</span><span class="tok-n">result</span><span class="tok-p">);</span>
+	<span class="tok-n">imwrite</span><span class="tok-p">(</span><span class="tok-s">&quot;result.jpg&quot;</span><span class="tok-p">,</span><span class="tok-n">result</span><span class="tok-p">);</span>
 	<span class="tok-n">waitKey</span><span class="tok-p">(</span><span class="tok-mi">20000</span><span class="tok-p">);</span>
 <span class="tok-p">}</span></code></pre>
 </div>
@@ -681,8 +713,8 @@ Negative is : 255-100=155<br></p>
 	<span class="tok-kt">int</span> <span class="tok-n">height</span><span class="tok-p">,</span><span class="tok-n">width</span><span class="tok-p">,</span><span class="tok-n">negative</span><span class="tok-p">,</span><span class="tok-n">i</span><span class="tok-p">,</span><span class="tok-n">j</span><span class="tok-p">;</span>
 
 	<span class="tok-n">image</span><span class="tok-o">=</span><span class="tok-n">imread</span><span class="tok-p">(</span><span class="tok-n">argv</span><span class="tok-p">[</span><span class="tok-mi">1</span><span class="tok-p">],</span><span class="tok-n">CV_LOAD_IMAGE_GRAYSCALE</span><span class="tok-p">);</span>
-	<span class="tok-n">height</span><span class="tok-o">=</span><span class="tok-n">image</span><span class="tok-p">.</span><span class="tok-n">rows</span><span class="tok-p">;</span>
-	<span class="tok-n">width</span><span class="tok-o">=</span><span class="tok-n">image</span><span class="tok-p">.</span><span class="tok-n">cols</span><span class="tok-p">;</span>
+	<span class="tok-n">height</span><span class="tok-o">=</span><span class="tok-n">image</span><span class="tok-p">.</span><span class="tok-n">size</span><span class="tok-p">().</span><span class="tok-n">height</span><span class="tok-p">;</span>
+	<span class="tok-n">width</span><span class="tok-o">=</span><span class="tok-n">image</span><span class="tok-p">.</span><span class="tok-n">size</span><span class="tok-p">().</span><span class="tok-n">width</span><span class="tok-p">;</span>
 
 	<span class="tok-n">cout</span><span class="tok-o">&lt;&lt;</span><span class="tok-s">&quot;Height:&quot;</span><span class="tok-o">&lt;&lt;</span><span class="tok-n">height</span><span class="tok-o">&lt;&lt;</span><span class="tok-s">&quot; Width:&quot;</span><span class="tok-o">&lt;&lt;</span><span class="tok-n">width</span><span class="tok-o">&lt;&lt;</span><span class="tok-n">endl</span><span class="tok-p">;</span>
 
@@ -699,10 +731,29 @@ Negative is : 255-100=155<br></p>
 	<span class="tok-p">}</span>
 
 	<span class="tok-n">imshow</span><span class="tok-p">(</span><span class="tok-s">&quot;Negative&quot;</span><span class="tok-p">,</span><span class="tok-n">image</span><span class="tok-p">);</span>
+	<span class="tok-n">imwrite</span><span class="tok-p">(</span><span class="tok-s">&quot;negative.jpg&quot;</span><span class="tok-p">,</span><span class="tok-n">image</span><span class="tok-p">);</span>
 	<span class="tok-n">waitKey</span><span class="tok-p">(</span><span class="tok-mi">5000</span><span class="tok-p">);</span>
 	<span class="tok-k">return</span> <span class="tok-mi">0</span><span class="tok-p">;</span>
 <span class="tok-p">}</span></code></pre>
 </div>
+</div>
+<div class="paragraph">
+<p>This code apllies the algorithm in greyscale, and to do for RGB model, you need to apply the algorithm into each layer (R,G and B). Remembering that a colored image is an 3D matrix, and a greyscale one is 2D.</p>
+</div>
+<div class="paragraph">
+<p>Let&#8217;s see the result for the half of image:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="hannibal.jpg" alt="hannibal">
+</div>
+<div class="title">Figure 5. Original</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="negative.jpg" alt="negative">
+</div>
+<div class="title">Figure 6. Negative (left 	half)</div>
 </div>
 </div>
 <div class="sect2">
@@ -733,9 +784,22 @@ Negative is : 255-100=155<br></p>
 		<span class="tok-p">}</span>
 	<span class="tok-p">}</span>
 	<span class="tok-n">imshow</span><span class="tok-p">(</span><span class="tok-s">&quot;Greyscale Image&quot;</span><span class="tok-p">,</span><span class="tok-n">greyscale_image</span><span class="tok-p">);</span>
+	<span class="tok-n">imwrite</span><span class="tok-p">(</span><span class="tok-s">&quot;rgbtogrey.jpg&quot;</span><span class="tok-p">,</span><span class="tok-n">greyscale_image</span><span class="tok-p">);</span>
 	<span class="tok-n">waitKey</span><span class="tok-p">(</span><span class="tok-mi">5000</span><span class="tok-p">);</span>
 <span class="tok-p">}</span></code></pre>
 </div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="louvre.jpg" alt="louvre">
+</div>
+<div class="title">Figure 7. Original</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="rgbtogrey.jpg" alt="rgbtogrey">
+</div>
+<div class="title">Figure 8. RGB to Greyscale</div>
 </div>
 </div>
 </div>
@@ -840,13 +904,13 @@ Negative is : 255-100=155<br></p>
 <div class="content">
 <img src="bubbles.png" alt="bubbles">
 </div>
-<div class="title">Figure 1. Bubbles</div>
+<div class="title">Figure 9. Bubbles</div>
 </div>
 <div class="imageblock">
 <div class="content">
 <img src="labeled_bubbles.png" alt="labeled bubbles">
 </div>
-<div class="title">Figure 2. Labeled bubbles</div>
+<div class="title">Figure 10. Labeled bubbles</div>
 </div>
 </div>
 <div class="sect2">
@@ -886,13 +950,13 @@ Example:<br></p>
 <div class="content">
 <img src="noborders.png" alt="noborders">
 </div>
-<div class="title">Figure 3. Original image after removing the border-bubbles</div>
+<div class="title">Figure 11. Original image after removing the border-bubbles</div>
 </div>
 <div class="imageblock">
 <div class="content">
 <img src="holes_and_no_borders.png" alt="holes and no borders">
 </div>
-<div class="title">Figure 4. Identified hollowed regions</div>
+<div class="title">Figure 12. Identified hollowed regions</div>
 </div>
 <div class="paragraph">
 <p>Needing the codes? Here we go&#8230;&#8203;</p>
@@ -1268,7 +1332,7 @@ Example:<br></p>
 <div id="footer">
 <div id="footer-text">
 Version <br>
-Last updated 2016-09-18 00:39:32 BRT
+Last updated 2016-09-18 11:46:48 BRT
 </div>
 </div>
 </body>
