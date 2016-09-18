@@ -7,7 +7,7 @@ using namespace std;
 int main(int argc, char** argv){
   Mat image,greyframe;
   int width, height;
-  VideoCapture cap(0); 
+  VideoCapture cap(0);
   Mat histogram, histogram_to_equalize;
   int nbins = 255;
   float range[] = {0, 256};
@@ -56,7 +56,7 @@ int main(int argc, char** argv){
     for(int i=1; i<256; i++){
       hist[i] += hist[i-1];
     }
-    // normalizes o histograma
+    // normalizes the histogram
     for(int i=0; i<256; i++){
       hist[i] = hist[i]*255/hist[255];
     }
