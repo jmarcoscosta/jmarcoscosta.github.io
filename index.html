@@ -503,6 +503,14 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_rgb_to_greyscale">1.4. RGB to Greyscale</a></li>
 </ul>
 </li>
+<li><a href="#_identifying_counting_and_labeling_regions_using_the_same_algorithm">2. Identifying, counting and labeling regions (using the same algorithm)</a>
+<ul class="sectlevel2">
+<li><a href="#_seedfill">2.1. Seedfill</a></li>
+</ul>
+</li>
+<li><a href="#_seedfill_implementation">3. Seedfill implementation</a></li>
+<li><a href="#_what_if_i_have_more_than_255_regions_at_my_picture">4. What if I have more than 255 regions at my picture?</a></li>
+<li><a href="#_identifying_regions_with_holes">5. Identifying regions with holes</a></li>
 </ul>
 </div>
 </div>
@@ -731,11 +739,379 @@ Negative is : 255-100=155</p>
 </div>
 </div>
 </div>
+<div class="sect1">
+<h2 id="_identifying_counting_and_labeling_regions_using_the_same_algorithm">2. Identifying, counting and labeling regions (using the same algorithm)</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_seedfill">2.1. Seedfill</h3>
+<div class="paragraph">
+<p>Seedfill algorithm labels regions of a certain color in a background differently colored. Our examples are pretty simple: white (shade of grey: 255) bubbles in a black background (shade of gray: 0). Before I forget, <em>seedfill</em> and <em>floodfill</em> are different names for the same algorithm.</p>
+</div>
+<div id="app-listing" class="listingblock">
+<div class="title">seedfill.cpp</div>
+<div class="content">
+<pre class="pygments highlight"><code data-lang="cpp"><span class="tok-cp">#include &lt;iostream&gt;</span>
+<span class="tok-cp">#include &lt;opencv2/opencv.hpp&gt;</span>
+<span class="tok-cp">#include &lt;stack&gt;</span>
+<span class="tok-k">using</span> <span class="tok-k">namespace</span> <span class="tok-n">std</span><span class="tok-p">;</span>
+<span class="tok-k">using</span> <span class="tok-k">namespace</span> <span class="tok-n">cv</span><span class="tok-p">;</span>
+
+<span class="tok-kt">void</span> <span class="tok-nf">seedfill</span> <span class="tok-p">(</span><span class="tok-n">Mat</span> <span class="tok-o">&amp;</span><span class="tok-n">image</span><span class="tok-p">,</span> <span class="tok-n">CvPoint</span> <span class="tok-n">p</span><span class="tok-p">,</span> <span class="tok-kt">int</span> <span class="tok-n">label</span><span class="tok-p">,</span> <span class="tok-kt">int</span> <span class="tok-n">color</span><span class="tok-o">=</span><span class="tok-mi">255</span><span class="tok-p">){</span> <span class="tok-c1">//color is an optional parameter</span>
+	<span class="tok-n">stack</span><span class="tok-o">&lt;</span><span class="tok-n">CvPoint</span><span class="tok-o">&gt;</span> <span class="tok-n">pixel_stack</span><span class="tok-p">;</span>
+	<span class="tok-n">pixel_stack</span><span class="tok-p">.</span><span class="tok-n">push</span><span class="tok-p">(</span><span class="tok-n">p</span><span class="tok-p">);</span>
+    <span class="tok-n">image</span><span class="tok-p">.</span><span class="tok-n">at</span><span class="tok-o">&lt;</span><span class="tok-n">uchar</span><span class="tok-o">&gt;</span><span class="tok-p">(</span><span class="tok-n">p</span><span class="tok-p">)</span><span class="tok-o">=</span><span class="tok-n">label</span><span class="tok-p">;</span>
+	<span class="tok-n">CvPoint</span> <span class="tok-n">aux</span><span class="tok-p">,</span><span class="tok-n">current</span><span class="tok-p">;</span>
+	<span class="tok-k">while</span><span class="tok-p">(</span><span class="tok-o">!</span><span class="tok-n">pixel_stack</span><span class="tok-p">.</span><span class="tok-n">empty</span><span class="tok-p">()){</span>
+		<span class="tok-n">current</span><span class="tok-o">=</span><span class="tok-n">pixel_stack</span><span class="tok-p">.</span><span class="tok-n">top</span><span class="tok-p">();</span>
+		<span class="tok-n">pixel_stack</span><span class="tok-p">.</span><span class="tok-n">pop</span><span class="tok-p">();</span>
+
+		<span class="tok-k">if</span><span class="tok-p">(</span><span class="tok-n">image</span><span class="tok-p">.</span><span class="tok-n">at</span><span class="tok-o">&lt;</span><span class="tok-n">uchar</span><span class="tok-o">&gt;</span><span class="tok-p">(</span><span class="tok-n">current</span><span class="tok-p">.</span><span class="tok-n">y</span><span class="tok-o">+</span><span class="tok-mi">1</span><span class="tok-p">,</span><span class="tok-n">current</span><span class="tok-p">.</span><span class="tok-n">x</span><span class="tok-p">)</span><span class="tok-o">==</span><span class="tok-n">color</span><span class="tok-p">){</span>
+		<span class="tok-n">aux</span><span class="tok-p">.</span><span class="tok-n">y</span><span class="tok-o">=</span><span class="tok-n">current</span><span class="tok-p">.</span><span class="tok-n">y</span><span class="tok-o">+</span><span class="tok-mi">1</span><span class="tok-p">;</span>
+		<span class="tok-n">aux</span><span class="tok-p">.</span><span class="tok-n">x</span><span class="tok-o">=</span><span class="tok-n">current</span><span class="tok-p">.</span><span class="tok-n">x</span><span class="tok-p">;</span>
+		<span class="tok-n">image</span><span class="tok-p">.</span><span class="tok-n">at</span><span class="tok-o">&lt;</span><span class="tok-n">uchar</span><span class="tok-o">&gt;</span><span class="tok-p">(</span><span class="tok-n">current</span><span class="tok-p">.</span><span class="tok-n">y</span><span class="tok-o">+</span><span class="tok-mi">1</span><span class="tok-p">,</span><span class="tok-n">current</span><span class="tok-p">.</span><span class="tok-n">x</span><span class="tok-p">)</span><span class="tok-o">=</span><span class="tok-n">label</span><span class="tok-p">;</span>
+		<span class="tok-n">pixel_stack</span><span class="tok-p">.</span><span class="tok-n">push</span><span class="tok-p">(</span><span class="tok-n">aux</span><span class="tok-p">);}</span>
+
+		<span class="tok-k">if</span><span class="tok-p">(</span><span class="tok-n">image</span><span class="tok-p">.</span><span class="tok-n">at</span><span class="tok-o">&lt;</span><span class="tok-n">uchar</span><span class="tok-o">&gt;</span><span class="tok-p">(</span><span class="tok-n">current</span><span class="tok-p">.</span><span class="tok-n">y</span><span class="tok-p">,</span><span class="tok-n">current</span><span class="tok-p">.</span><span class="tok-n">x</span><span class="tok-o">+</span><span class="tok-mi">1</span><span class="tok-p">)</span><span class="tok-o">==</span><span class="tok-n">color</span><span class="tok-p">){</span>
+		<span class="tok-n">aux</span><span class="tok-p">.</span><span class="tok-n">y</span><span class="tok-o">=</span><span class="tok-n">current</span><span class="tok-p">.</span><span class="tok-n">y</span><span class="tok-p">;</span>
+		<span class="tok-n">aux</span><span class="tok-p">.</span><span class="tok-n">x</span><span class="tok-o">=</span><span class="tok-n">current</span><span class="tok-p">.</span><span class="tok-n">x</span><span class="tok-o">+</span><span class="tok-mi">1</span><span class="tok-p">;</span>
+		<span class="tok-n">image</span><span class="tok-p">.</span><span class="tok-n">at</span><span class="tok-o">&lt;</span><span class="tok-n">uchar</span><span class="tok-o">&gt;</span><span class="tok-p">(</span><span class="tok-n">current</span><span class="tok-p">.</span><span class="tok-n">y</span><span class="tok-p">,</span><span class="tok-n">current</span><span class="tok-p">.</span><span class="tok-n">x</span><span class="tok-o">+</span><span class="tok-mi">1</span><span class="tok-p">)</span><span class="tok-o">=</span><span class="tok-n">label</span><span class="tok-p">;</span>
+		<span class="tok-n">pixel_stack</span><span class="tok-p">.</span><span class="tok-n">push</span><span class="tok-p">(</span><span class="tok-n">aux</span><span class="tok-p">);}</span>
+
+		<span class="tok-k">if</span><span class="tok-p">(</span><span class="tok-n">image</span><span class="tok-p">.</span><span class="tok-n">at</span><span class="tok-o">&lt;</span><span class="tok-n">uchar</span><span class="tok-o">&gt;</span><span class="tok-p">(</span><span class="tok-n">current</span><span class="tok-p">.</span><span class="tok-n">y</span><span class="tok-o">-</span><span class="tok-mi">1</span><span class="tok-p">,</span><span class="tok-n">current</span><span class="tok-p">.</span><span class="tok-n">x</span><span class="tok-p">)</span><span class="tok-o">==</span><span class="tok-n">color</span><span class="tok-p">){</span>
+		<span class="tok-n">aux</span><span class="tok-p">.</span><span class="tok-n">y</span><span class="tok-o">=</span><span class="tok-n">current</span><span class="tok-p">.</span><span class="tok-n">y</span><span class="tok-o">-</span><span class="tok-mi">1</span><span class="tok-p">;</span>
+		<span class="tok-n">aux</span><span class="tok-p">.</span><span class="tok-n">x</span><span class="tok-o">=</span><span class="tok-n">current</span><span class="tok-p">.</span><span class="tok-n">x</span><span class="tok-p">;</span>
+		<span class="tok-n">image</span><span class="tok-p">.</span><span class="tok-n">at</span><span class="tok-o">&lt;</span><span class="tok-n">uchar</span><span class="tok-o">&gt;</span><span class="tok-p">(</span><span class="tok-n">current</span><span class="tok-p">.</span><span class="tok-n">y</span><span class="tok-o">-</span><span class="tok-mi">1</span><span class="tok-p">,</span><span class="tok-n">current</span><span class="tok-p">.</span><span class="tok-n">x</span><span class="tok-p">)</span><span class="tok-o">=</span><span class="tok-n">label</span><span class="tok-p">;</span>
+		<span class="tok-n">pixel_stack</span><span class="tok-p">.</span><span class="tok-n">push</span><span class="tok-p">(</span><span class="tok-n">aux</span><span class="tok-p">);}</span>
+
+		<span class="tok-k">if</span><span class="tok-p">(</span><span class="tok-n">image</span><span class="tok-p">.</span><span class="tok-n">at</span><span class="tok-o">&lt;</span><span class="tok-n">uchar</span><span class="tok-o">&gt;</span><span class="tok-p">(</span><span class="tok-n">current</span><span class="tok-p">.</span><span class="tok-n">y</span><span class="tok-p">,</span><span class="tok-n">current</span><span class="tok-p">.</span><span class="tok-n">x</span><span class="tok-o">-</span><span class="tok-mi">1</span><span class="tok-p">)</span><span class="tok-o">==</span><span class="tok-n">color</span><span class="tok-p">)</span> <span class="tok-p">{</span>
+		<span class="tok-n">aux</span><span class="tok-p">.</span><span class="tok-n">y</span><span class="tok-o">=</span><span class="tok-n">current</span><span class="tok-p">.</span><span class="tok-n">y</span><span class="tok-p">;</span>
+		<span class="tok-n">aux</span><span class="tok-p">.</span><span class="tok-n">x</span><span class="tok-o">=</span><span class="tok-n">current</span><span class="tok-p">.</span><span class="tok-n">x</span><span class="tok-o">-</span><span class="tok-mi">1</span><span class="tok-p">;</span>
+		<span class="tok-n">image</span><span class="tok-p">.</span><span class="tok-n">at</span><span class="tok-o">&lt;</span><span class="tok-n">uchar</span><span class="tok-o">&gt;</span><span class="tok-p">(</span><span class="tok-n">current</span><span class="tok-p">.</span><span class="tok-n">y</span><span class="tok-p">,</span><span class="tok-n">current</span><span class="tok-p">.</span><span class="tok-n">x</span><span class="tok-o">-</span><span class="tok-mi">1</span><span class="tok-p">)</span><span class="tok-o">=</span><span class="tok-n">label</span><span class="tok-p">;</span>
+		<span class="tok-n">pixel_stack</span><span class="tok-p">.</span><span class="tok-n">push</span><span class="tok-p">(</span><span class="tok-n">aux</span><span class="tok-p">);}</span>
+
+
+
+	<span class="tok-p">}</span>
+<span class="tok-p">}</span></code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_seedfill_implementation">3. Seedfill implementation</h2>
+<div class="sectionbody">
+<div id="app-listing" class="listingblock">
+<div class="title">implementation.cpp</div>
+<div class="content">
+<pre class="pygments highlight"><code data-lang="cpp"><span class="tok-kt">int</span> <span class="tok-nf">main</span><span class="tok-p">(</span><span class="tok-kt">int</span> <span class="tok-n">argc</span><span class="tok-p">,</span> <span class="tok-kt">char</span><span class="tok-o">**</span> <span class="tok-n">argv</span><span class="tok-p">){</span>
+  <span class="tok-n">Mat</span> <span class="tok-n">image</span><span class="tok-p">;</span>
+  <span class="tok-kt">int</span> <span class="tok-n">width</span><span class="tok-p">,</span> <span class="tok-n">height</span><span class="tok-p">;</span>
+  <span class="tok-kt">int</span> <span class="tok-n">label</span><span class="tok-p">;</span>
+
+  <span class="tok-n">CvPoint</span> <span class="tok-n">p</span><span class="tok-p">;</span>
+
+  <span class="tok-n">image</span> <span class="tok-o">=</span> <span class="tok-n">imread</span><span class="tok-p">(</span><span class="tok-n">argv</span><span class="tok-p">[</span><span class="tok-mi">1</span><span class="tok-p">],</span><span class="tok-n">CV_LOAD_IMAGE_GRAYSCALE</span><span class="tok-p">);</span>
+
+  <span class="tok-k">if</span><span class="tok-p">(</span><span class="tok-o">!</span><span class="tok-n">image</span><span class="tok-p">.</span><span class="tok-n">data</span><span class="tok-p">){</span>
+    <span class="tok-n">std</span><span class="tok-o">::</span><span class="tok-n">cout</span> <span class="tok-o">&lt;&lt;</span> <span class="tok-s">&quot;imagem  was not correctly loaded </span><span class="tok-se">\n</span><span class="tok-s">&quot;</span><span class="tok-p">;</span>
+    <span class="tok-k">return</span><span class="tok-p">(</span><span class="tok-o">-</span><span class="tok-mi">1</span><span class="tok-p">);</span>
+  <span class="tok-p">}</span>
+
+  <span class="tok-n">width</span><span class="tok-o">=</span><span class="tok-n">image</span><span class="tok-p">.</span><span class="tok-n">cols</span><span class="tok-p">;</span>
+  <span class="tok-n">height</span><span class="tok-o">=</span><span class="tok-n">image</span><span class="tok-p">.</span><span class="tok-n">rows</span><span class="tok-p">;</span>
+  <span class="tok-n">p</span><span class="tok-p">.</span><span class="tok-n">x</span><span class="tok-o">=</span><span class="tok-mi">0</span><span class="tok-p">;</span>
+  <span class="tok-n">p</span><span class="tok-p">.</span><span class="tok-n">y</span><span class="tok-o">=</span><span class="tok-mi">0</span><span class="tok-p">;</span>
+  <span class="tok-n">label</span><span class="tok-o">=</span><span class="tok-mi">0</span><span class="tok-p">;</span>
+
+
+  <span class="tok-k">for</span><span class="tok-p">(</span><span class="tok-kt">int</span> <span class="tok-n">i</span><span class="tok-o">=</span><span class="tok-mi">1</span><span class="tok-p">;</span><span class="tok-n">i</span><span class="tok-o">&lt;</span><span class="tok-n">height</span><span class="tok-o">-</span><span class="tok-mi">1</span><span class="tok-p">;</span> <span class="tok-n">i</span><span class="tok-o">++</span><span class="tok-p">){</span>
+    <span class="tok-k">for</span><span class="tok-p">(</span><span class="tok-kt">int</span> <span class="tok-n">j</span><span class="tok-o">=</span><span class="tok-mi">1</span><span class="tok-p">;</span><span class="tok-n">j</span><span class="tok-o">&lt;</span><span class="tok-n">width</span><span class="tok-o">-</span><span class="tok-mi">1</span><span class="tok-p">;</span> <span class="tok-n">j</span><span class="tok-o">++</span><span class="tok-p">){</span>
+      <span class="tok-k">if</span><span class="tok-p">(</span><span class="tok-n">image</span><span class="tok-p">.</span><span class="tok-n">at</span><span class="tok-o">&lt;</span><span class="tok-n">uchar</span><span class="tok-o">&gt;</span><span class="tok-p">(</span><span class="tok-n">i</span><span class="tok-p">,</span><span class="tok-n">j</span><span class="tok-p">)</span> <span class="tok-o">==</span> <span class="tok-mi">255</span><span class="tok-p">){</span>
+		<span class="tok-n">label</span><span class="tok-o">++</span><span class="tok-p">;</span>
+		<span class="tok-n">p</span><span class="tok-p">.</span><span class="tok-n">x</span><span class="tok-o">=</span><span class="tok-n">j</span><span class="tok-p">;</span>
+		<span class="tok-n">p</span><span class="tok-p">.</span><span class="tok-n">y</span><span class="tok-o">=</span><span class="tok-n">i</span><span class="tok-p">;</span>
+		<span class="tok-n">seedfill</span><span class="tok-p">(</span><span class="tok-n">image</span><span class="tok-p">,</span><span class="tok-n">p</span><span class="tok-p">,</span><span class="tok-n">label</span><span class="tok-p">);</span>
+	  <span class="tok-p">}</span>
+	<span class="tok-p">}</span>
+  <span class="tok-p">}</span>
+<span class="tok-p">}</span></code></pre>
+</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="bubbles.png" alt="Bubbles">
+</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="labeled_bubbles.png" alt="Labeled bubbles">
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_what_if_i_have_more_than_255_regions_at_my_picture">4. What if I have more than 255 regions at my picture?</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Well, Seedfill labels a white regions with the current label. What does it mean? It means that a white (255) region becomes 45 (a "darker" shade of grey) if the algorithm has already counted 45 white regions at the image. But the maximum value is 255, so we can&#8217;t have a "whiter" white. I have a tip for people who face such problem: convert the label value, wich is represented in <em>decimal base</em> to an 6 algarism number in <em>hexadecimal base</em>. After this, you will convert your hexadecimal number into an RGB value. The first pair of digits will be used for red color, the middle pair for blue color, and the third pair for green color.
+Example:
+Label: 55671 (decimal)
+Hexadecimal: D977 (since we need 6 digits, we&#8217;ll call it "00D977")
+RGB=(0,217,119)
+00(hexadecimal) equals to 0 (decimal)
+D9(hexadecimal) equals to 217 (decimal)
+77(hexadecimal) equals to 119 (decimal)</p>
+</div>
+<div class="paragraph">
+<p>"00" for red, "D9" for blue and "77" for green. Doing this version of "pseudo color", we will identify the white labeled regions by (pseudo)colored patterns, instead of a darker shade of grey (as we did before).</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_identifying_regions_with_holes">5. Identifying regions with holes</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>This code is a bit more rough to understand&#8230;&#8203;First of all, we need to cut off the border touching regions, because you can&#8217;t know if the region has another not-shown holes. Didn&#8217;t get it? Imagine this: you are taking a picture of a way too big carpet, and this picture shows only a part of it. The border-touching bubbles may or may not have a hole, and you don&#8217;t know it for sure because you didn&#8217;t capture the complete bubble. Let me put this in another way: by taking the photo, may have taken a picture of a peculiar bubble with a full white half and another hollowed half. Since the picture only shows the full white half, you think the bubble is completely white, BUT IT IS NOT! After cutting those tricky bubbles, we need to use seedfill to label the background with a different color of the holes, wich are, at first place, all black. After this, we indentify (and delete, if necessary) the hollowed bubbles.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="noborders.png" alt="Original image after removing the border-bubbles">
+</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="holes_and_no_borders.png" alt="Identified hollowed regions">
+</div>
+</div>
+<div class="paragraph">
+<p>Needing the codes? Here we go&#8230;&#8203;</p>
+</div>
+<div id="app-listing" class="listingblock">
+<div class="title">Cutting borders off</div>
+<div class="content">
+<pre class="pygments highlight"><code data-lang="cpp"><span class="tok-n">Mat</span> <span class="tok-nf">remove_border_regions</span><span class="tok-p">(</span><span class="tok-n">Mat</span> <span class="tok-n">original_image</span><span class="tok-p">){</span>
+
+<span class="tok-n">Mat</span> <span class="tok-n">image</span><span class="tok-p">;</span> <span class="tok-c1">//image is a copy</span>
+<span class="tok-n">original_image</span><span class="tok-p">.</span><span class="tok-n">copyTo</span><span class="tok-p">(</span><span class="tok-n">image</span><span class="tok-p">);</span>
+<span class="tok-n">CvPoint</span> <span class="tok-n">p</span><span class="tok-p">;</span>
+<span class="tok-kt">int</span> <span class="tok-n">label</span><span class="tok-o">=</span><span class="tok-mi">0</span><span class="tok-p">,</span><span class="tok-n">local_label</span><span class="tok-p">;</span>
+<span class="tok-k">for</span><span class="tok-p">(</span><span class="tok-kt">int</span> <span class="tok-n">i</span><span class="tok-o">=</span><span class="tok-mi">1</span><span class="tok-p">;</span> <span class="tok-n">i</span><span class="tok-o">&lt;</span><span class="tok-n">image</span><span class="tok-p">.</span><span class="tok-n">rows</span><span class="tok-o">-</span><span class="tok-mi">1</span><span class="tok-p">;</span> <span class="tok-n">i</span><span class="tok-o">++</span><span class="tok-p">){</span>
+    <span class="tok-k">for</span><span class="tok-p">(</span><span class="tok-kt">int</span> <span class="tok-n">j</span><span class="tok-o">=</span><span class="tok-mi">1</span><span class="tok-p">;</span> <span class="tok-n">j</span><span class="tok-o">&lt;</span><span class="tok-n">image</span><span class="tok-p">.</span><span class="tok-n">cols</span><span class="tok-o">-</span><span class="tok-mi">1</span><span class="tok-p">;</span> <span class="tok-n">j</span><span class="tok-o">++</span><span class="tok-p">){</span>
+      <span class="tok-k">if</span><span class="tok-p">(</span><span class="tok-n">image</span><span class="tok-p">.</span><span class="tok-n">at</span><span class="tok-o">&lt;</span><span class="tok-n">uchar</span><span class="tok-o">&gt;</span><span class="tok-p">(</span><span class="tok-n">i</span><span class="tok-p">,</span><span class="tok-n">j</span><span class="tok-p">)</span> <span class="tok-o">==</span> <span class="tok-mi">255</span><span class="tok-p">){</span>
+		<span class="tok-n">label</span><span class="tok-o">++</span><span class="tok-p">;</span>
+		<span class="tok-n">p</span><span class="tok-p">.</span><span class="tok-n">x</span><span class="tok-o">=</span><span class="tok-n">j</span><span class="tok-p">;</span>
+		<span class="tok-n">p</span><span class="tok-p">.</span><span class="tok-n">y</span><span class="tok-o">=</span><span class="tok-n">i</span><span class="tok-p">;</span>
+		<span class="tok-n">seedfill</span><span class="tok-p">(</span><span class="tok-n">image</span><span class="tok-p">,</span><span class="tok-n">p</span><span class="tok-p">,</span><span class="tok-n">label</span><span class="tok-p">);</span>
+	  <span class="tok-p">}</span>
+	<span class="tok-p">}</span>
+  <span class="tok-p">}</span>
+
+<span class="tok-c1">//upper-side border</span>
+<span class="tok-k">for</span><span class="tok-p">(</span><span class="tok-kt">int</span> <span class="tok-n">i</span><span class="tok-o">=</span><span class="tok-mi">0</span><span class="tok-p">;</span><span class="tok-n">i</span><span class="tok-o">&lt;</span><span class="tok-n">image</span><span class="tok-p">.</span><span class="tok-n">cols</span><span class="tok-p">;</span><span class="tok-n">i</span><span class="tok-o">++</span><span class="tok-p">){</span>
+	<span class="tok-k">if</span><span class="tok-p">(</span><span class="tok-n">image</span><span class="tok-p">.</span><span class="tok-n">at</span><span class="tok-o">&lt;</span><span class="tok-n">uchar</span><span class="tok-o">&gt;</span><span class="tok-p">(</span><span class="tok-mi">0</span><span class="tok-p">,</span><span class="tok-n">i</span><span class="tok-p">)</span><span class="tok-o">&gt;</span><span class="tok-mi">0</span><span class="tok-p">){</span>
+
+		<span class="tok-n">local_label</span><span class="tok-o">=</span><span class="tok-n">image</span><span class="tok-p">.</span><span class="tok-n">at</span><span class="tok-o">&lt;</span><span class="tok-n">uchar</span><span class="tok-o">&gt;</span><span class="tok-p">(</span><span class="tok-mi">0</span><span class="tok-p">,</span><span class="tok-n">i</span><span class="tok-p">);</span>
+
+		<span class="tok-k">for</span><span class="tok-p">(</span><span class="tok-kt">int</span> <span class="tok-n">i</span><span class="tok-o">=</span><span class="tok-mi">0</span><span class="tok-p">;</span> <span class="tok-n">i</span><span class="tok-o">&lt;</span><span class="tok-n">image</span><span class="tok-p">.</span><span class="tok-n">rows</span><span class="tok-p">;</span> <span class="tok-n">i</span><span class="tok-o">++</span><span class="tok-p">){</span>
+    		<span class="tok-k">for</span><span class="tok-p">(</span><span class="tok-kt">int</span> <span class="tok-n">j</span><span class="tok-o">=</span><span class="tok-mi">0</span><span class="tok-p">;</span> <span class="tok-n">j</span><span class="tok-o">&lt;</span><span class="tok-n">image</span><span class="tok-p">.</span><span class="tok-n">cols</span><span class="tok-p">;</span> <span class="tok-n">j</span><span class="tok-o">++</span><span class="tok-p">){</span>
+     			 <span class="tok-k">if</span><span class="tok-p">(</span><span class="tok-n">image</span><span class="tok-p">.</span><span class="tok-n">at</span><span class="tok-o">&lt;</span><span class="tok-n">uchar</span><span class="tok-o">&gt;</span><span class="tok-p">(</span><span class="tok-n">i</span><span class="tok-p">,</span><span class="tok-n">j</span><span class="tok-p">)</span> <span class="tok-o">==</span> <span class="tok-n">local_label</span><span class="tok-p">){</span>
+					<span class="tok-n">image</span><span class="tok-p">.</span><span class="tok-n">at</span><span class="tok-o">&lt;</span><span class="tok-n">uchar</span><span class="tok-o">&gt;</span><span class="tok-p">(</span><span class="tok-n">i</span><span class="tok-p">,</span><span class="tok-n">j</span><span class="tok-p">)</span><span class="tok-o">=</span><span class="tok-mi">0</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+<span class="tok-p">}</span>
+<span class="tok-p">}</span>
+<span class="tok-p">}</span>
+<span class="tok-p">}</span>
+<span class="tok-c1">//bottom-side border</span>
+<span class="tok-k">for</span><span class="tok-p">(</span><span class="tok-kt">int</span> <span class="tok-n">i</span><span class="tok-o">=</span><span class="tok-mi">0</span><span class="tok-p">;</span><span class="tok-n">i</span><span class="tok-o">&lt;</span><span class="tok-n">image</span><span class="tok-p">.</span><span class="tok-n">cols</span><span class="tok-p">;</span><span class="tok-n">i</span><span class="tok-o">++</span><span class="tok-p">){</span>
+	<span class="tok-k">if</span><span class="tok-p">(</span><span class="tok-n">image</span><span class="tok-p">.</span><span class="tok-n">at</span><span class="tok-o">&lt;</span><span class="tok-n">uchar</span><span class="tok-o">&gt;</span><span class="tok-p">(</span><span class="tok-n">image</span><span class="tok-p">.</span><span class="tok-n">rows</span><span class="tok-o">-</span><span class="tok-mi">1</span><span class="tok-p">,</span><span class="tok-n">i</span><span class="tok-p">)</span><span class="tok-o">&gt;</span><span class="tok-mi">0</span><span class="tok-p">){</span>
+
+		<span class="tok-n">local_label</span><span class="tok-o">=</span><span class="tok-n">image</span><span class="tok-p">.</span><span class="tok-n">at</span><span class="tok-o">&lt;</span><span class="tok-n">uchar</span><span class="tok-o">&gt;</span><span class="tok-p">(</span><span class="tok-n">image</span><span class="tok-p">.</span><span class="tok-n">rows</span><span class="tok-o">-</span><span class="tok-mi">1</span><span class="tok-p">,</span><span class="tok-n">i</span><span class="tok-p">);</span>
+
+		<span class="tok-k">for</span><span class="tok-p">(</span><span class="tok-kt">int</span> <span class="tok-n">i</span><span class="tok-o">=</span><span class="tok-mi">0</span><span class="tok-p">;</span> <span class="tok-n">i</span><span class="tok-o">&lt;</span><span class="tok-n">image</span><span class="tok-p">.</span><span class="tok-n">rows</span><span class="tok-p">;</span> <span class="tok-n">i</span><span class="tok-o">++</span><span class="tok-p">){</span>
+    		<span class="tok-k">for</span><span class="tok-p">(</span><span class="tok-kt">int</span> <span class="tok-n">j</span><span class="tok-o">=</span><span class="tok-mi">0</span><span class="tok-p">;</span> <span class="tok-n">j</span><span class="tok-o">&lt;</span><span class="tok-n">image</span><span class="tok-p">.</span><span class="tok-n">cols</span><span class="tok-p">;</span> <span class="tok-n">j</span><span class="tok-o">++</span><span class="tok-p">){</span>
+     			 <span class="tok-k">if</span><span class="tok-p">(</span><span class="tok-n">image</span><span class="tok-p">.</span><span class="tok-n">at</span><span class="tok-o">&lt;</span><span class="tok-n">uchar</span><span class="tok-o">&gt;</span><span class="tok-p">(</span><span class="tok-n">i</span><span class="tok-p">,</span><span class="tok-n">j</span><span class="tok-p">)</span> <span class="tok-o">==</span> <span class="tok-n">local_label</span><span class="tok-p">){</span>
+					<span class="tok-n">image</span><span class="tok-p">.</span><span class="tok-n">at</span><span class="tok-o">&lt;</span><span class="tok-n">uchar</span><span class="tok-o">&gt;</span><span class="tok-p">(</span><span class="tok-n">i</span><span class="tok-p">,</span><span class="tok-n">j</span><span class="tok-p">)</span><span class="tok-o">=</span><span class="tok-mi">0</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+<span class="tok-p">}</span>
+<span class="tok-p">}</span>
+<span class="tok-p">}</span>
+<span class="tok-p">}</span>
+<span class="tok-c1">//left-side border</span>
+<span class="tok-k">for</span><span class="tok-p">(</span><span class="tok-kt">int</span> <span class="tok-n">i</span><span class="tok-o">=</span><span class="tok-mi">0</span><span class="tok-p">;</span><span class="tok-n">i</span><span class="tok-o">&lt;</span><span class="tok-n">image</span><span class="tok-p">.</span><span class="tok-n">rows</span><span class="tok-p">;</span><span class="tok-n">i</span><span class="tok-o">++</span><span class="tok-p">){</span>
+	<span class="tok-k">if</span><span class="tok-p">(</span><span class="tok-n">image</span><span class="tok-p">.</span><span class="tok-n">at</span><span class="tok-o">&lt;</span><span class="tok-n">uchar</span><span class="tok-o">&gt;</span><span class="tok-p">(</span><span class="tok-n">i</span><span class="tok-p">,</span><span class="tok-mi">0</span><span class="tok-p">)</span><span class="tok-o">&gt;</span><span class="tok-mi">0</span><span class="tok-p">){</span>
+
+		<span class="tok-n">local_label</span><span class="tok-o">=</span><span class="tok-n">image</span><span class="tok-p">.</span><span class="tok-n">at</span><span class="tok-o">&lt;</span><span class="tok-n">uchar</span><span class="tok-o">&gt;</span><span class="tok-p">(</span><span class="tok-n">i</span><span class="tok-p">,</span><span class="tok-mi">0</span><span class="tok-p">);</span>
+
+		<span class="tok-k">for</span><span class="tok-p">(</span><span class="tok-kt">int</span> <span class="tok-n">i</span><span class="tok-o">=</span><span class="tok-mi">0</span><span class="tok-p">;</span> <span class="tok-n">i</span><span class="tok-o">&lt;</span><span class="tok-n">image</span><span class="tok-p">.</span><span class="tok-n">rows</span><span class="tok-p">;</span> <span class="tok-n">i</span><span class="tok-o">++</span><span class="tok-p">){</span>
+    		<span class="tok-k">for</span><span class="tok-p">(</span><span class="tok-kt">int</span> <span class="tok-n">j</span><span class="tok-o">=</span><span class="tok-mi">0</span><span class="tok-p">;</span> <span class="tok-n">j</span><span class="tok-o">&lt;</span><span class="tok-n">image</span><span class="tok-p">.</span><span class="tok-n">cols</span><span class="tok-p">;</span> <span class="tok-n">j</span><span class="tok-o">++</span><span class="tok-p">){</span>
+     			 <span class="tok-k">if</span><span class="tok-p">(</span><span class="tok-n">image</span><span class="tok-p">.</span><span class="tok-n">at</span><span class="tok-o">&lt;</span><span class="tok-n">uchar</span><span class="tok-o">&gt;</span><span class="tok-p">(</span><span class="tok-n">i</span><span class="tok-p">,</span><span class="tok-n">j</span><span class="tok-p">)</span> <span class="tok-o">==</span> <span class="tok-n">local_label</span><span class="tok-p">){</span>
+					<span class="tok-n">image</span><span class="tok-p">.</span><span class="tok-n">at</span><span class="tok-o">&lt;</span><span class="tok-n">uchar</span><span class="tok-o">&gt;</span><span class="tok-p">(</span><span class="tok-n">i</span><span class="tok-p">,</span><span class="tok-n">j</span><span class="tok-p">)</span><span class="tok-o">=</span><span class="tok-mi">0</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+<span class="tok-p">}</span>
+<span class="tok-p">}</span>
+<span class="tok-p">}</span>
+<span class="tok-p">}</span>
+<span class="tok-c1">//right-side border</span>
+<span class="tok-k">for</span><span class="tok-p">(</span><span class="tok-kt">int</span> <span class="tok-n">i</span><span class="tok-o">=</span><span class="tok-mi">0</span><span class="tok-p">;</span><span class="tok-n">i</span><span class="tok-o">&lt;</span><span class="tok-n">image</span><span class="tok-p">.</span><span class="tok-n">rows</span><span class="tok-p">;</span><span class="tok-n">i</span><span class="tok-o">++</span><span class="tok-p">){</span>
+	<span class="tok-k">if</span><span class="tok-p">(</span><span class="tok-n">image</span><span class="tok-p">.</span><span class="tok-n">at</span><span class="tok-o">&lt;</span><span class="tok-n">uchar</span><span class="tok-o">&gt;</span><span class="tok-p">(</span><span class="tok-n">i</span><span class="tok-p">,</span><span class="tok-n">image</span><span class="tok-p">.</span><span class="tok-n">cols</span><span class="tok-o">-</span><span class="tok-mi">1</span><span class="tok-p">)</span><span class="tok-o">&gt;</span><span class="tok-mi">0</span><span class="tok-p">){</span>
+
+		<span class="tok-n">local_label</span><span class="tok-o">=</span><span class="tok-n">image</span><span class="tok-p">.</span><span class="tok-n">at</span><span class="tok-o">&lt;</span><span class="tok-n">uchar</span><span class="tok-o">&gt;</span><span class="tok-p">(</span><span class="tok-n">i</span><span class="tok-p">,</span><span class="tok-n">image</span><span class="tok-p">.</span><span class="tok-n">cols</span><span class="tok-o">-</span><span class="tok-mi">1</span><span class="tok-p">);</span>
+
+		<span class="tok-k">for</span><span class="tok-p">(</span><span class="tok-kt">int</span> <span class="tok-n">i</span><span class="tok-o">=</span><span class="tok-mi">0</span><span class="tok-p">;</span> <span class="tok-n">i</span><span class="tok-o">&lt;</span><span class="tok-n">image</span><span class="tok-p">.</span><span class="tok-n">rows</span><span class="tok-p">;</span> <span class="tok-n">i</span><span class="tok-o">++</span><span class="tok-p">){</span>
+    		<span class="tok-k">for</span><span class="tok-p">(</span><span class="tok-kt">int</span> <span class="tok-n">j</span><span class="tok-o">=</span><span class="tok-mi">0</span><span class="tok-p">;</span> <span class="tok-n">j</span><span class="tok-o">&lt;</span><span class="tok-n">image</span><span class="tok-p">.</span><span class="tok-n">cols</span><span class="tok-p">;</span> <span class="tok-n">j</span><span class="tok-o">++</span><span class="tok-p">){</span>
+     			 <span class="tok-k">if</span><span class="tok-p">(</span><span class="tok-n">image</span><span class="tok-p">.</span><span class="tok-n">at</span><span class="tok-o">&lt;</span><span class="tok-n">uchar</span><span class="tok-o">&gt;</span><span class="tok-p">(</span><span class="tok-n">i</span><span class="tok-p">,</span><span class="tok-n">j</span><span class="tok-p">)</span> <span class="tok-o">==</span> <span class="tok-n">local_label</span><span class="tok-p">){</span>
+					<span class="tok-n">image</span><span class="tok-p">.</span><span class="tok-n">at</span><span class="tok-o">&lt;</span><span class="tok-n">uchar</span><span class="tok-o">&gt;</span><span class="tok-p">(</span><span class="tok-n">i</span><span class="tok-p">,</span><span class="tok-n">j</span><span class="tok-p">)</span><span class="tok-o">=</span><span class="tok-mi">0</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+<span class="tok-p">}</span>
+<span class="tok-p">}</span>
+<span class="tok-p">}</span>
+<span class="tok-p">}</span>
+<span class="tok-c1">//turning regions back to the original shade of gray (usually white)</span>
+<span class="tok-k">for</span><span class="tok-p">(</span><span class="tok-kt">int</span> <span class="tok-n">i</span><span class="tok-o">=</span><span class="tok-mi">0</span><span class="tok-p">;</span> <span class="tok-n">i</span><span class="tok-o">&lt;</span><span class="tok-n">image</span><span class="tok-p">.</span><span class="tok-n">rows</span><span class="tok-p">;</span> <span class="tok-n">i</span><span class="tok-o">++</span><span class="tok-p">){</span>
+    <span class="tok-k">for</span><span class="tok-p">(</span><span class="tok-kt">int</span> <span class="tok-n">j</span><span class="tok-o">=</span><span class="tok-mi">0</span><span class="tok-p">;</span> <span class="tok-n">j</span><span class="tok-o">&lt;</span><span class="tok-n">image</span><span class="tok-p">.</span><span class="tok-n">cols</span><span class="tok-p">;</span> <span class="tok-n">j</span><span class="tok-o">++</span><span class="tok-p">){</span>
+      <span class="tok-k">if</span><span class="tok-p">(</span><span class="tok-n">image</span><span class="tok-p">.</span><span class="tok-n">at</span><span class="tok-o">&lt;</span><span class="tok-n">uchar</span><span class="tok-o">&gt;</span><span class="tok-p">(</span><span class="tok-n">i</span><span class="tok-p">,</span><span class="tok-n">j</span><span class="tok-p">)</span><span class="tok-o">!=</span><span class="tok-mi">0</span><span class="tok-p">)</span><span class="tok-n">image</span><span class="tok-p">.</span><span class="tok-n">at</span><span class="tok-o">&lt;</span><span class="tok-n">uchar</span><span class="tok-o">&gt;</span><span class="tok-p">(</span><span class="tok-n">i</span><span class="tok-p">,</span><span class="tok-n">j</span><span class="tok-p">)</span><span class="tok-o">=</span><span class="tok-mi">255</span><span class="tok-p">;</span> <span class="tok-c1">//if labeled, turn to white</span>
+<span class="tok-p">}</span>
+<span class="tok-p">}</span>
+<span class="tok-k">return</span> <span class="tok-n">image</span><span class="tok-p">;</span>
+
+<span class="tok-p">}</span></code></pre>
+</div>
+</div>
+<div id="app-listing" class="listingblock">
+<div class="title">Hello holes!</div>
+<div class="content">
+<pre class="pygments highlight"><code data-lang="cpp"><span class="tok-n">Mat</span> <span class="tok-nf">identify_regions_with_holes</span><span class="tok-p">(</span><span class="tok-n">Mat</span> <span class="tok-n">original_image</span><span class="tok-p">){</span> <span class="tok-c1">//should be used on the UNLABELED image</span>
+
+<span class="tok-n">Mat</span> <span class="tok-n">image</span><span class="tok-p">;</span> <span class="tok-c1">//image is a copy</span>
+<span class="tok-n">original_image</span><span class="tok-p">.</span><span class="tok-n">copyTo</span><span class="tok-p">(</span><span class="tok-n">image</span><span class="tok-p">);</span>
+<span class="tok-n">CvPoint</span> <span class="tok-n">background_seed</span><span class="tok-p">;</span>
+<span class="tok-n">background_seed</span><span class="tok-p">.</span><span class="tok-n">x</span><span class="tok-o">=</span><span class="tok-mi">1</span><span class="tok-p">;</span>
+<span class="tok-n">background_seed</span><span class="tok-p">.</span><span class="tok-n">y</span><span class="tok-o">=</span><span class="tok-mi">1</span><span class="tok-p">;</span>
+
+<span class="tok-n">CvPoint</span> <span class="tok-n">p</span><span class="tok-p">;</span>
+<span class="tok-kt">int</span> <span class="tok-n">label</span><span class="tok-o">=</span><span class="tok-mi">0</span><span class="tok-p">;</span>
+<span class="tok-k">for</span><span class="tok-p">(</span><span class="tok-kt">int</span> <span class="tok-n">i</span><span class="tok-o">=</span><span class="tok-mi">1</span><span class="tok-p">;</span> <span class="tok-n">i</span><span class="tok-o">&lt;</span><span class="tok-n">image</span><span class="tok-p">.</span><span class="tok-n">rows</span><span class="tok-o">-</span><span class="tok-mi">1</span><span class="tok-p">;</span> <span class="tok-n">i</span><span class="tok-o">++</span><span class="tok-p">){</span>
+    <span class="tok-k">for</span><span class="tok-p">(</span><span class="tok-kt">int</span> <span class="tok-n">j</span><span class="tok-o">=</span><span class="tok-mi">1</span><span class="tok-p">;</span> <span class="tok-n">j</span><span class="tok-o">&lt;</span><span class="tok-n">image</span><span class="tok-p">.</span><span class="tok-n">cols</span><span class="tok-o">-</span><span class="tok-mi">1</span><span class="tok-p">;</span> <span class="tok-n">j</span><span class="tok-o">++</span><span class="tok-p">){</span>
+      <span class="tok-k">if</span><span class="tok-p">(</span><span class="tok-n">image</span><span class="tok-p">.</span><span class="tok-n">at</span><span class="tok-o">&lt;</span><span class="tok-n">uchar</span><span class="tok-o">&gt;</span><span class="tok-p">(</span><span class="tok-n">i</span><span class="tok-p">,</span><span class="tok-n">j</span><span class="tok-p">)</span> <span class="tok-o">==</span> <span class="tok-mi">255</span><span class="tok-p">){</span>
+		<span class="tok-n">label</span><span class="tok-o">++</span><span class="tok-p">;</span>
+		<span class="tok-n">p</span><span class="tok-p">.</span><span class="tok-n">x</span><span class="tok-o">=</span><span class="tok-n">j</span><span class="tok-p">;</span>
+		<span class="tok-n">p</span><span class="tok-p">.</span><span class="tok-n">y</span><span class="tok-o">=</span><span class="tok-n">i</span><span class="tok-p">;</span>
+		<span class="tok-n">seedfill</span><span class="tok-p">(</span><span class="tok-n">image</span><span class="tok-p">,</span><span class="tok-n">p</span><span class="tok-p">,</span><span class="tok-n">label</span><span class="tok-p">);</span>
+<span class="tok-p">}</span>
+<span class="tok-p">}</span>
+<span class="tok-p">}</span>
+
+<span class="tok-c1">//remember that &#39;image&#39; is already labeled</span>
+
+<span class="tok-k">for</span><span class="tok-p">(</span><span class="tok-kt">int</span> <span class="tok-n">i</span><span class="tok-o">=</span><span class="tok-mi">1</span><span class="tok-p">;</span> <span class="tok-n">i</span><span class="tok-o">&lt;</span><span class="tok-n">image</span><span class="tok-p">.</span><span class="tok-n">rows</span><span class="tok-o">-</span><span class="tok-mi">1</span><span class="tok-p">;</span> <span class="tok-n">i</span><span class="tok-o">++</span><span class="tok-p">){</span>
+    <span class="tok-k">for</span><span class="tok-p">(</span><span class="tok-kt">int</span> <span class="tok-n">j</span><span class="tok-o">=</span><span class="tok-mi">1</span><span class="tok-p">;</span> <span class="tok-n">j</span><span class="tok-o">&lt;</span><span class="tok-n">image</span><span class="tok-p">.</span><span class="tok-n">cols</span><span class="tok-o">-</span><span class="tok-mi">1</span><span class="tok-p">;</span> <span class="tok-n">j</span><span class="tok-o">++</span><span class="tok-p">){</span>
+    	<span class="tok-n">image</span><span class="tok-p">.</span><span class="tok-n">at</span><span class="tok-o">&lt;</span><span class="tok-n">uchar</span><span class="tok-o">&gt;</span><span class="tok-p">(</span><span class="tok-n">i</span><span class="tok-p">,</span><span class="tok-n">j</span><span class="tok-p">)</span><span class="tok-o">++</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+<span class="tok-p">}</span>
+
+<span class="tok-n">seedfill</span><span class="tok-p">(</span><span class="tok-n">image</span><span class="tok-p">,</span><span class="tok-n">background_seed</span><span class="tok-p">,</span><span class="tok-mi">255</span><span class="tok-p">,</span><span class="tok-mi">1</span><span class="tok-p">);</span> <span class="tok-c1">//little trick for turning background into white</span>
+<span class="tok-kt">bool</span> <span class="tok-n">identifying_helper</span><span class="tok-o">=</span><span class="tok-mi">1</span><span class="tok-p">;</span>
+
+<span class="tok-k">for</span><span class="tok-p">(</span><span class="tok-kt">int</span> <span class="tok-n">i</span><span class="tok-o">=</span><span class="tok-mi">1</span><span class="tok-p">;</span> <span class="tok-n">i</span><span class="tok-o">&lt;</span><span class="tok-n">image</span><span class="tok-p">.</span><span class="tok-n">rows</span><span class="tok-o">-</span><span class="tok-mi">1</span><span class="tok-p">;</span> <span class="tok-n">i</span><span class="tok-o">++</span><span class="tok-p">){</span>
+    <span class="tok-k">for</span><span class="tok-p">(</span><span class="tok-kt">int</span> <span class="tok-n">j</span><span class="tok-o">=</span><span class="tok-mi">1</span><span class="tok-p">;</span> <span class="tok-n">j</span><span class="tok-o">&lt;</span><span class="tok-n">image</span><span class="tok-p">.</span><span class="tok-n">cols</span><span class="tok-o">-</span><span class="tok-mi">1</span><span class="tok-p">;</span> <span class="tok-n">j</span><span class="tok-o">++</span><span class="tok-p">){</span>
+ 		<span class="tok-k">if</span><span class="tok-p">(</span><span class="tok-n">image</span><span class="tok-p">.</span><span class="tok-n">at</span><span class="tok-o">&lt;</span><span class="tok-n">uchar</span><span class="tok-o">&gt;</span><span class="tok-p">(</span><span class="tok-n">i</span><span class="tok-p">,</span><span class="tok-n">j</span><span class="tok-p">)</span><span class="tok-o">==</span><span class="tok-mi">1</span><span class="tok-p">){</span> <span class="tok-c1">//since holes are (now) labeled with &quot;1&quot;</span>
+ 			<span class="tok-kt">int</span> <span class="tok-n">sum</span><span class="tok-o">=</span><span class="tok-mi">0</span><span class="tok-p">,</span><span class="tok-n">counter</span><span class="tok-o">=</span><span class="tok-mi">0</span><span class="tok-p">,</span><span class="tok-n">label_to_change</span><span class="tok-p">;</span>
+ 			<span class="tok-k">if</span><span class="tok-p">(</span><span class="tok-n">image</span><span class="tok-p">.</span><span class="tok-n">at</span><span class="tok-o">&lt;</span><span class="tok-n">uchar</span><span class="tok-o">&gt;</span><span class="tok-p">(</span><span class="tok-n">i</span><span class="tok-o">+</span><span class="tok-mi">1</span><span class="tok-p">,</span><span class="tok-n">j</span><span class="tok-p">)</span><span class="tok-o">!=</span><span class="tok-mi">1</span><span class="tok-p">){</span>
+ 			<span class="tok-n">counter</span><span class="tok-o">++</span><span class="tok-p">;</span>
+ 			<span class="tok-n">sum</span><span class="tok-o">+=</span><span class="tok-n">image</span><span class="tok-p">.</span><span class="tok-n">at</span><span class="tok-o">&lt;</span><span class="tok-n">uchar</span><span class="tok-o">&gt;</span><span class="tok-p">(</span><span class="tok-n">i</span><span class="tok-o">+</span><span class="tok-mi">1</span><span class="tok-p">,</span><span class="tok-n">j</span><span class="tok-p">);</span>
+ 			<span class="tok-p">}</span>
+ 			<span class="tok-k">if</span><span class="tok-p">(</span><span class="tok-n">image</span><span class="tok-p">.</span><span class="tok-n">at</span><span class="tok-o">&lt;</span><span class="tok-n">uchar</span><span class="tok-o">&gt;</span><span class="tok-p">(</span><span class="tok-n">i</span><span class="tok-p">,</span><span class="tok-n">j</span><span class="tok-o">+</span><span class="tok-mi">1</span><span class="tok-p">)</span><span class="tok-o">!=</span><span class="tok-mi">1</span><span class="tok-p">){</span>
+ 			<span class="tok-n">counter</span><span class="tok-o">++</span><span class="tok-p">;</span>
+ 			<span class="tok-n">sum</span><span class="tok-o">+=</span><span class="tok-n">image</span><span class="tok-p">.</span><span class="tok-n">at</span><span class="tok-o">&lt;</span><span class="tok-n">uchar</span><span class="tok-o">&gt;</span><span class="tok-p">(</span><span class="tok-n">i</span><span class="tok-p">,</span><span class="tok-n">j</span><span class="tok-o">+</span><span class="tok-mi">1</span><span class="tok-p">);</span>
+ 			<span class="tok-p">}</span>
+ 			<span class="tok-k">if</span><span class="tok-p">(</span><span class="tok-n">image</span><span class="tok-p">.</span><span class="tok-n">at</span><span class="tok-o">&lt;</span><span class="tok-n">uchar</span><span class="tok-o">&gt;</span><span class="tok-p">(</span><span class="tok-n">i</span><span class="tok-o">-</span><span class="tok-mi">1</span><span class="tok-p">,</span><span class="tok-n">j</span><span class="tok-p">)</span><span class="tok-o">!=</span><span class="tok-mi">1</span><span class="tok-p">){</span>
+ 			<span class="tok-n">counter</span><span class="tok-o">++</span><span class="tok-p">;</span>
+ 			<span class="tok-n">sum</span><span class="tok-o">+=</span><span class="tok-n">image</span><span class="tok-p">.</span><span class="tok-n">at</span><span class="tok-o">&lt;</span><span class="tok-n">uchar</span><span class="tok-o">&gt;</span><span class="tok-p">(</span><span class="tok-n">i</span><span class="tok-o">-</span><span class="tok-mi">1</span><span class="tok-p">,</span><span class="tok-n">j</span><span class="tok-p">);</span>
+ 			<span class="tok-p">}</span>
+ 			<span class="tok-k">if</span><span class="tok-p">(</span><span class="tok-n">image</span><span class="tok-p">.</span><span class="tok-n">at</span><span class="tok-o">&lt;</span><span class="tok-n">uchar</span><span class="tok-o">&gt;</span><span class="tok-p">(</span><span class="tok-n">i</span><span class="tok-p">,</span><span class="tok-n">j</span><span class="tok-o">-</span><span class="tok-mi">1</span><span class="tok-p">)</span><span class="tok-o">!=</span><span class="tok-mi">1</span><span class="tok-p">){</span>
+ 			<span class="tok-n">counter</span><span class="tok-o">++</span><span class="tok-p">;</span>
+ 			<span class="tok-n">sum</span><span class="tok-o">+=</span><span class="tok-n">image</span><span class="tok-p">.</span><span class="tok-n">at</span><span class="tok-o">&lt;</span><span class="tok-n">uchar</span><span class="tok-o">&gt;</span><span class="tok-p">(</span><span class="tok-n">i</span><span class="tok-p">,</span><span class="tok-n">j</span><span class="tok-o">-</span><span class="tok-mi">1</span><span class="tok-p">);</span>
+ 			<span class="tok-p">}</span>
+			<span class="tok-k">if</span><span class="tok-p">(</span><span class="tok-n">counter</span><span class="tok-o">&gt;</span><span class="tok-mi">0</span><span class="tok-p">){</span>
+				<span class="tok-n">label_to_change</span><span class="tok-o">=</span><span class="tok-n">sum</span><span class="tok-o">/</span><span class="tok-n">counter</span><span class="tok-p">;</span>
+				<span class="tok-k">for</span><span class="tok-p">(</span><span class="tok-kt">int</span> <span class="tok-n">i</span><span class="tok-o">=</span><span class="tok-mi">1</span><span class="tok-p">;</span> <span class="tok-n">i</span><span class="tok-o">&lt;</span><span class="tok-n">image</span><span class="tok-p">.</span><span class="tok-n">rows</span><span class="tok-o">-</span><span class="tok-mi">1</span><span class="tok-p">;</span> <span class="tok-n">i</span><span class="tok-o">++</span><span class="tok-p">){</span>
+    				<span class="tok-k">for</span><span class="tok-p">(</span><span class="tok-kt">int</span> <span class="tok-n">j</span><span class="tok-o">=</span><span class="tok-mi">1</span><span class="tok-p">;</span> <span class="tok-n">j</span><span class="tok-o">&lt;</span><span class="tok-n">image</span><span class="tok-p">.</span><span class="tok-n">cols</span><span class="tok-o">-</span><span class="tok-mi">1</span><span class="tok-p">;</span> <span class="tok-n">j</span><span class="tok-o">++</span><span class="tok-p">){</span>
+     			 		<span class="tok-k">if</span><span class="tok-p">(</span><span class="tok-n">image</span><span class="tok-p">.</span><span class="tok-n">at</span><span class="tok-o">&lt;</span><span class="tok-n">uchar</span><span class="tok-o">&gt;</span><span class="tok-p">(</span><span class="tok-n">i</span><span class="tok-p">,</span><span class="tok-n">j</span><span class="tok-p">)</span> <span class="tok-o">==</span> <span class="tok-n">label_to_change</span><span class="tok-p">){</span>
+						   <span class="tok-n">identifying_helper</span><span class="tok-o">=</span> <span class="tok-o">!</span><span class="tok-n">identifying_helper</span><span class="tok-p">;</span>
+						   <span class="tok-n">image</span><span class="tok-p">.</span><span class="tok-n">at</span><span class="tok-o">&lt;</span><span class="tok-n">uchar</span><span class="tok-o">&gt;</span><span class="tok-p">(</span><span class="tok-n">i</span><span class="tok-p">,</span><span class="tok-n">j</span><span class="tok-p">)</span><span class="tok-o">=</span><span class="tok-n">label</span><span class="tok-o">+</span><span class="tok-mi">2</span><span class="tok-o">+</span><span class="tok-n">label</span><span class="tok-o">*</span><span class="tok-n">identifying_helper</span><span class="tok-p">;</span>
+							<span class="tok-p">}</span>
+							<span class="tok-p">}</span>
+							<span class="tok-p">}</span>
+			<span class="tok-p">}</span>
+ 			<span class="tok-p">}</span>
+<span class="tok-p">}</span>
+<span class="tok-p">}</span>
+<span class="tok-n">seedfill</span><span class="tok-p">(</span><span class="tok-n">image</span><span class="tok-p">,</span><span class="tok-n">background_seed</span><span class="tok-p">,</span><span class="tok-mi">0</span><span class="tok-p">,</span><span class="tok-mi">255</span><span class="tok-p">);</span> <span class="tok-c1">//background returns to black</span>
+
+<span class="tok-k">for</span><span class="tok-p">(</span><span class="tok-kt">int</span> <span class="tok-n">i</span><span class="tok-o">=</span><span class="tok-mi">0</span><span class="tok-p">;</span> <span class="tok-n">i</span><span class="tok-o">&lt;</span><span class="tok-n">image</span><span class="tok-p">.</span><span class="tok-n">rows</span><span class="tok-p">;</span> <span class="tok-n">i</span><span class="tok-o">++</span><span class="tok-p">){</span>
+    <span class="tok-k">for</span><span class="tok-p">(</span><span class="tok-kt">int</span> <span class="tok-n">j</span><span class="tok-o">=</span><span class="tok-mi">0</span><span class="tok-p">;</span> <span class="tok-n">j</span><span class="tok-o">&lt;</span><span class="tok-n">image</span><span class="tok-p">.</span><span class="tok-n">cols</span><span class="tok-p">;</span> <span class="tok-n">j</span><span class="tok-o">++</span><span class="tok-p">){</span>
+    	<span class="tok-k">if</span><span class="tok-p">(</span><span class="tok-n">image</span><span class="tok-p">.</span><span class="tok-n">at</span><span class="tok-o">&lt;</span><span class="tok-n">uchar</span><span class="tok-o">&gt;</span><span class="tok-p">(</span><span class="tok-n">i</span><span class="tok-p">,</span><span class="tok-n">j</span><span class="tok-p">)</span><span class="tok-o">&gt;</span><span class="tok-mi">1</span> <span class="tok-o">&amp;&amp;</span> <span class="tok-n">image</span><span class="tok-p">.</span><span class="tok-n">at</span><span class="tok-o">&lt;</span><span class="tok-n">uchar</span><span class="tok-o">&gt;</span><span class="tok-p">(</span><span class="tok-n">i</span><span class="tok-p">,</span><span class="tok-n">j</span><span class="tok-p">)</span><span class="tok-o">&lt;=</span><span class="tok-n">label</span><span class="tok-p">){</span>
+		   <span class="tok-n">image</span><span class="tok-p">.</span><span class="tok-n">at</span><span class="tok-o">&lt;</span><span class="tok-n">uchar</span><span class="tok-o">&gt;</span><span class="tok-p">(</span><span class="tok-n">i</span><span class="tok-p">,</span><span class="tok-n">j</span><span class="tok-p">)</span><span class="tok-o">=</span><span class="tok-mi">255</span><span class="tok-p">;</span> <span class="tok-c1">//labeled regions return to white</span>
+		<span class="tok-p">}</span>
+		<span class="tok-p">}</span>
+		<span class="tok-p">}</span>
+	<span class="tok-k">return</span> <span class="tok-n">image</span><span class="tok-p">;</span>
+<span class="tok-p">}</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>To return those images through new image files, just run:</p>
+</div>
+<div id="app-listing" class="listingblock">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="cpp"><span class="tok-kt">int</span> <span class="tok-nf">main</span><span class="tok-p">(</span><span class="tok-kt">int</span> <span class="tok-n">argc</span><span class="tok-p">,</span> <span class="tok-kt">char</span><span class="tok-o">**</span> <span class="tok-n">argv</span><span class="tok-p">){</span>
+  <span class="tok-n">Mat</span> <span class="tok-n">image</span><span class="tok-p">;</span>
+  <span class="tok-kt">int</span> <span class="tok-n">width</span><span class="tok-p">,</span> <span class="tok-n">height</span><span class="tok-p">;</span>
+  <span class="tok-kt">int</span> <span class="tok-n">label</span><span class="tok-p">;</span>
+
+  <span class="tok-n">CvPoint</span> <span class="tok-n">p</span><span class="tok-p">;</span>
+
+  <span class="tok-n">image</span> <span class="tok-o">=</span> <span class="tok-n">imread</span><span class="tok-p">(</span><span class="tok-n">argv</span><span class="tok-p">[</span><span class="tok-mi">1</span><span class="tok-p">],</span><span class="tok-n">CV_LOAD_IMAGE_GRAYSCALE</span><span class="tok-p">);</span>
+
+  <span class="tok-k">if</span><span class="tok-p">(</span><span class="tok-o">!</span><span class="tok-n">image</span><span class="tok-p">.</span><span class="tok-n">data</span><span class="tok-p">){</span>
+    <span class="tok-n">std</span><span class="tok-o">::</span><span class="tok-n">cout</span> <span class="tok-o">&lt;&lt;</span> <span class="tok-s">&quot;imagem  was not correctly loaded </span><span class="tok-se">\n</span><span class="tok-s">&quot;</span><span class="tok-p">;</span>
+    <span class="tok-k">return</span><span class="tok-p">(</span><span class="tok-o">-</span><span class="tok-mi">1</span><span class="tok-p">);</span>
+  <span class="tok-p">}</span>
+
+  <span class="tok-n">width</span><span class="tok-o">=</span><span class="tok-n">image</span><span class="tok-p">.</span><span class="tok-n">cols</span><span class="tok-p">;</span>
+  <span class="tok-n">height</span><span class="tok-o">=</span><span class="tok-n">image</span><span class="tok-p">.</span><span class="tok-n">rows</span><span class="tok-p">;</span>
+  <span class="tok-n">p</span><span class="tok-p">.</span><span class="tok-n">x</span><span class="tok-o">=</span><span class="tok-mi">0</span><span class="tok-p">;</span>
+  <span class="tok-n">p</span><span class="tok-p">.</span><span class="tok-n">y</span><span class="tok-o">=</span><span class="tok-mi">0</span><span class="tok-p">;</span>
+  <span class="tok-n">label</span><span class="tok-o">=</span><span class="tok-mi">0</span><span class="tok-p">;</span>
+
+
+  <span class="tok-k">for</span><span class="tok-p">(</span><span class="tok-kt">int</span> <span class="tok-n">i</span><span class="tok-o">=</span><span class="tok-mi">1</span><span class="tok-p">;</span><span class="tok-n">i</span><span class="tok-o">&lt;</span><span class="tok-n">height</span><span class="tok-o">-</span><span class="tok-mi">1</span><span class="tok-p">;</span> <span class="tok-n">i</span><span class="tok-o">++</span><span class="tok-p">){</span>
+    <span class="tok-k">for</span><span class="tok-p">(</span><span class="tok-kt">int</span> <span class="tok-n">j</span><span class="tok-o">=</span><span class="tok-mi">1</span><span class="tok-p">;</span><span class="tok-n">j</span><span class="tok-o">&lt;</span><span class="tok-n">width</span><span class="tok-o">-</span><span class="tok-mi">1</span><span class="tok-p">;</span> <span class="tok-n">j</span><span class="tok-o">++</span><span class="tok-p">){</span>
+      <span class="tok-k">if</span><span class="tok-p">(</span><span class="tok-n">image</span><span class="tok-p">.</span><span class="tok-n">at</span><span class="tok-o">&lt;</span><span class="tok-n">uchar</span><span class="tok-o">&gt;</span><span class="tok-p">(</span><span class="tok-n">i</span><span class="tok-p">,</span><span class="tok-n">j</span><span class="tok-p">)</span> <span class="tok-o">==</span> <span class="tok-mi">255</span><span class="tok-p">){</span>
+		<span class="tok-n">label</span><span class="tok-o">++</span><span class="tok-p">;</span>
+		<span class="tok-n">p</span><span class="tok-p">.</span><span class="tok-n">x</span><span class="tok-o">=</span><span class="tok-n">j</span><span class="tok-p">;</span>
+		<span class="tok-n">p</span><span class="tok-p">.</span><span class="tok-n">y</span><span class="tok-o">=</span><span class="tok-n">i</span><span class="tok-p">;</span>
+		<span class="tok-n">seedfill</span><span class="tok-p">(</span><span class="tok-n">image</span><span class="tok-p">,</span><span class="tok-n">p</span><span class="tok-p">,</span><span class="tok-n">label</span><span class="tok-p">);</span>
+	  <span class="tok-p">}</span>
+	<span class="tok-p">}</span>
+  <span class="tok-p">}</span>
+
+<span class="tok-n">imwrite</span><span class="tok-p">(</span><span class="tok-s">&quot;labeled.png&quot;</span><span class="tok-p">,</span><span class="tok-n">image</span><span class="tok-p">);</span>
+<span class="tok-n">imwrite</span><span class="tok-p">(</span><span class="tok-s">&quot;noborders.png&quot;</span><span class="tok-p">,</span><span class="tok-n">remove_border_regions</span><span class="tok-p">(</span><span class="tok-n">image</span><span class="tok-p">));</span>
+<span class="tok-n">imwrite</span><span class="tok-p">(</span><span class="tok-s">&quot;holes_and_no_borders.png&quot;</span><span class="tok-p">,</span><span class="tok-n">identify_regions_with_holes</span><span class="tok-p">(</span><span class="tok-n">remove_border_regions</span><span class="tok-p">(</span><span class="tok-n">image</span><span class="tok-p">)));</span>
+<span class="tok-n">cout</span><span class="tok-o">&lt;&lt;</span><span class="tok-s">&quot;label:&quot;</span><span class="tok-o">&lt;&lt;</span><span class="tok-n">label</span><span class="tok-p">;</span>
+
+<span class="tok-p">}</span></code></pre>
+</div>
+</div>
+</div>
+</div>
 </div>
 <div id="footer">
 <div id="footer-text">
 Version <br>
-Last updated 2016-09-17 22:08:47 BRT
+Last updated 2016-09-17 23:43:30 BRT
 </div>
 </div>
 </body>
