@@ -513,9 +513,10 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </li>
 <li><a href="#_histogram_manipulation">3. Histogram manipulation</a>
 <ul class="sectlevel2">
-<li><a href="#_equalizing_histograms">3.1. Equalizing histograms</a></li>
-<li><a href="#_already_made_videos_images_instead_of_using_cameras">3.2. Already-made videos/images instead of using cameras</a></li>
-<li><a href="#_motion_detector_based_on_histogram_comparision">3.3. Motion detector based on histogram comparision</a></li>
+<li><a href="#_calculating_and_exposing_colored_image_s_histogram">3.1. Calculating and exposing colored image&#8217;s histogram</a></li>
+<li><a href="#_equalizing_histograms">3.2. Equalizing histograms</a></li>
+<li><a href="#_already_made_videos_images_instead_of_using_cameras">3.3. Already-made videos/images instead of using cameras</a></li>
+<li><a href="#_motion_detector_based_on_histogram_comparision">3.4. Motion detector based on histogram comparision</a></li>
 </ul>
 </li>
 </ul>
@@ -1201,11 +1202,12 @@ Example:<br></p>
 <ul>
 <li>
 <p>The k-tone of grey, red, blue or green appears 341 times at the image.
--Remember that an histogram can represent data from a specific row or column as well, not only the whole image.
-=== Calculating and exposing colored image&#8217;s histogram</p>
+-Remember that an histogram can represent data from a specific row or column as well, not only the whole image.</p>
 </li>
 </ul>
 </div>
+<div class="sect2">
+<h3 id="_calculating_and_exposing_colored_image_s_histogram">3.1. Calculating and exposing colored image&#8217;s histogram</h3>
 <div class="paragraph">
 <p>This first histogram code works for a camera connected to your computer getting colored frames</p>
 </div>
@@ -1287,8 +1289,9 @@ Example:<br></p>
 </div>
 <div class="title">Figure 13. Result</div>
 </div>
+</div>
 <div class="sect2">
-<h3 id="_equalizing_histograms">3.1. Equalizing histograms</h3>
+<h3 id="_equalizing_histograms">3.2. Equalizing histograms</h3>
 <div class="paragraph">
 <p>If you want to increase the image&#8217;s contrast, there is a series of operations with the histogram to achieve that. First, you calculate the histogram, but this time we need to make it accumulating the previous values. How does it work? Pretty simple: the k-value (histogram[k]) equals to the sum of all the previous values from histogram[0] to histogram[k-1]. After this, we normalize it: multiply each histogram value by the number of colr bands (represented by the <em>nbins</em> variable) - 1 and divide it by the maximum accumulated histogram value (also the last element).</p>
 </div>
@@ -1425,7 +1428,7 @@ Example:<br></p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_already_made_videos_images_instead_of_using_cameras">3.2. Already-made videos/images instead of using cameras</h3>
+<h3 id="_already_made_videos_images_instead_of_using_cameras">3.3. Already-made videos/images instead of using cameras</h3>
 <div class="paragraph">
 <p>If you don&#8217;t have a camera or webcam but still wants to run those codes, you need to change a few things:</p>
 </div>
@@ -1472,7 +1475,7 @@ $./histogram_code filename.extension</pre>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_motion_detector_based_on_histogram_comparision">3.3. Motion detector based on histogram comparision</h3>
+<h3 id="_motion_detector_based_on_histogram_comparision">3.4. Motion detector based on histogram comparision</h3>
 <div class="paragraph">
 <p>This technique is based on comparing two histogram: the current one and the last captured one. If they are way too different, we assume that a moviment has occurred. Else, we assume that nothing has happened. Also, the user should provide a limit for this difference.</p>
 </div>
@@ -1609,7 +1612,7 @@ See <a href="http://docs.opencv.org/2.4/modules/imgproc/doc/histograms.html?high
 <div id="footer">
 <div id="footer-text">
 Version <br>
-Last updated 2016-09-18 17:09:34 BRT
+Last updated 2016-09-18 17:17:52 BRT
 </div>
 </div>
 </body>
