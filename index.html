@@ -498,6 +498,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_exchanging_regions_negative_images_and_converting_rgb_model_to_greyscale_only_shades_of_grey">1. Exchanging regions, negative images and converting RGB model to greyscale (only shades of grey)</a>
 <ul class="sectlevel2">
 <li><a href="#_exchange_a_region_randomly_way">1.1. Exchange a region (randomly way)</a></li>
+<li><a href="#_exchange_a_region_letting_the_user_choose_the_order">1.2. Exchange a region (letting the user choose the order)</a></li>
 </ul>
 </li>
 </ul>
@@ -520,9 +521,13 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 <div class="sect2">
 <h3 id="_exchange_a_region_randomly_way">1.1. Exchange a region (randomly way)</h3>
+<div class="paragraph">
+<p>We index the regions from left to right and top to bottom, as it is shown above.</p>
+</div>
 <div class="listingblock">
 <div class="content">
-<pre class="pygments highlight"><code data-lang="cpp"><span class="tok-cp">#include &lt;iostream&gt;</span>
+<pre class="pygments highlight"><code data-lang="cpp"><span class="tok-n">random</span><span class="tok-p">.</span><span class="tok-n">cpp</span>
+<span class="tok-cp">#include &lt;iostream&gt;</span>
 <span class="tok-cp">#include &lt;opencv2/opencv.hpp&gt;</span>
 <span class="tok-cp">#include &lt;stdlib.h&gt;</span>
 <span class="tok-cp">#include &lt;time.h&gt;</span>
@@ -581,13 +586,72 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 </div>
 </div>
+<div class="sect2">
+<h3 id="_exchange_a_region_letting_the_user_choose_the_order">1.2. Exchange a region (letting the user choose the order)</h3>
+<div class="listingblock">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="cpp"><span class="tok-n">superchangeregions</span><span class="tok-p">.</span><span class="tok-n">cpp</span>
+<span class="tok-cp">#include &lt;iostream&gt;</span>
+<span class="tok-cp">#include &lt;opencv2/opencv.hpp&gt;</span>
+
+<span class="tok-k">using</span> <span class="tok-k">namespace</span> <span class="tok-n">std</span><span class="tok-p">;</span>
+<span class="tok-k">using</span> <span class="tok-k">namespace</span> <span class="tok-n">cv</span><span class="tok-p">;</span>
+
+<span class="tok-kt">int</span> <span class="tok-nf">main</span><span class="tok-p">(</span><span class="tok-kt">int</span> <span class="tok-n">argc</span><span class="tok-p">,</span> <span class="tok-kt">char</span><span class="tok-o">**</span> <span class="tok-n">argv</span><span class="tok-p">){</span>
+	<span class="tok-n">Mat</span> <span class="tok-n">image</span><span class="tok-p">;</span>
+	<span class="tok-n">image</span><span class="tok-o">=</span><span class="tok-n">imread</span><span class="tok-p">(</span><span class="tok-n">argv</span><span class="tok-p">[</span><span class="tok-mi">1</span><span class="tok-p">],</span><span class="tok-n">CV_LOAD_IMAGE_GRAYSCALE</span><span class="tok-p">);</span>
+
+	<span class="tok-kt">unsigned</span> <span class="tok-n">height</span><span class="tok-p">,</span><span class="tok-n">width</span><span class="tok-p">,</span><span class="tok-n">N_h</span><span class="tok-p">,</span><span class="tok-n">N_v</span><span class="tok-p">;</span>
+	<span class="tok-n">height</span><span class="tok-o">=</span><span class="tok-n">image</span><span class="tok-p">.</span><span class="tok-n">rows</span><span class="tok-p">;</span>
+	<span class="tok-n">width</span><span class="tok-o">=</span><span class="tok-n">image</span><span class="tok-p">.</span><span class="tok-n">cols</span><span class="tok-p">;</span>
+	<span class="tok-n">cout</span><span class="tok-o">&lt;&lt;</span><span class="tok-s">&quot;Height: &quot;</span><span class="tok-o">&lt;&lt;</span><span class="tok-n">height</span><span class="tok-o">&lt;&lt;</span><span class="tok-s">&quot; Width: &quot;</span><span class="tok-o">&lt;&lt;</span><span class="tok-n">width</span><span class="tok-o">&lt;&lt;</span><span class="tok-n">endl</span><span class="tok-p">;</span>
+	<span class="tok-n">cout</span><span class="tok-o">&lt;&lt;</span><span class="tok-s">&quot;Choose the number of horizontal parts:&quot;</span><span class="tok-o">&lt;&lt;</span><span class="tok-n">endl</span><span class="tok-p">;</span>
+	<span class="tok-n">cin</span><span class="tok-o">&gt;&gt;</span><span class="tok-n">N_h</span><span class="tok-p">;</span>
+	<span class="tok-n">cout</span><span class="tok-o">&lt;&lt;</span><span class="tok-s">&quot;Choose the number of vertical parts:&quot;</span><span class="tok-o">&lt;&lt;</span><span class="tok-n">endl</span><span class="tok-p">;</span>
+	<span class="tok-n">cin</span><span class="tok-o">&gt;&gt;</span><span class="tok-n">N_v</span><span class="tok-p">;</span>
+	<span class="tok-kt">unsigned</span> <span class="tok-n">regions_order</span><span class="tok-p">[</span><span class="tok-n">N_v</span><span class="tok-o">*</span><span class="tok-n">N_h</span><span class="tok-p">],</span><span class="tok-n">i</span><span class="tok-p">,</span><span class="tok-n">j</span><span class="tok-p">,</span><span class="tok-n">counter</span><span class="tok-o">=</span><span class="tok-mi">0</span><span class="tok-p">;</span>
+	<span class="tok-n">Rect</span> <span class="tok-n">regions</span><span class="tok-p">[</span><span class="tok-n">N_v</span><span class="tok-o">*</span><span class="tok-n">N_h</span><span class="tok-p">];</span>
+
+	<span class="tok-k">for</span><span class="tok-p">(</span><span class="tok-n">j</span><span class="tok-o">=</span><span class="tok-mi">0</span><span class="tok-p">;</span><span class="tok-n">j</span><span class="tok-o">&lt;</span><span class="tok-n">N_v</span><span class="tok-p">;</span><span class="tok-n">j</span><span class="tok-o">++</span><span class="tok-p">){</span>
+		<span class="tok-k">for</span><span class="tok-p">(</span><span class="tok-n">i</span><span class="tok-o">=</span><span class="tok-mi">0</span><span class="tok-p">;</span><span class="tok-n">i</span><span class="tok-o">&lt;</span><span class="tok-n">N_h</span><span class="tok-p">;</span><span class="tok-n">i</span><span class="tok-o">++</span><span class="tok-p">){</span>
+			<span class="tok-n">Rect</span> <span class="tok-n">R</span><span class="tok-p">(</span><span class="tok-n">i</span><span class="tok-o">*</span><span class="tok-n">width</span><span class="tok-o">/</span><span class="tok-n">N_h</span><span class="tok-p">,</span><span class="tok-n">j</span><span class="tok-o">*</span><span class="tok-n">height</span><span class="tok-o">/</span><span class="tok-n">N_v</span><span class="tok-p">,</span><span class="tok-n">width</span><span class="tok-o">/</span><span class="tok-n">N_h</span><span class="tok-p">,</span><span class="tok-n">height</span><span class="tok-o">/</span><span class="tok-n">N_v</span><span class="tok-p">);</span>
+			<span class="tok-n">regions</span><span class="tok-p">[</span><span class="tok-n">counter</span><span class="tok-p">]</span><span class="tok-o">=</span><span class="tok-n">R</span><span class="tok-p">;</span>
+			<span class="tok-n">counter</span><span class="tok-o">++</span><span class="tok-p">;</span>
+		<span class="tok-p">}</span>
+	<span class="tok-p">}</span>
+
+
+	<span class="tok-k">for</span><span class="tok-p">(</span><span class="tok-n">i</span><span class="tok-o">=</span><span class="tok-mi">0</span><span class="tok-p">;</span><span class="tok-n">i</span><span class="tok-o">&lt;</span><span class="tok-n">N_v</span><span class="tok-o">*</span><span class="tok-n">N_h</span><span class="tok-p">;</span><span class="tok-n">i</span><span class="tok-o">++</span><span class="tok-p">){</span>
+		<span class="tok-n">cout</span><span class="tok-o">&lt;&lt;</span><span class="tok-s">&quot;Region: &quot;</span><span class="tok-o">&lt;&lt;</span><span class="tok-n">i</span><span class="tok-o">&lt;&lt;</span><span class="tok-n">endl</span><span class="tok-p">;</span>
+		<span class="tok-n">cin</span><span class="tok-o">&gt;&gt;</span><span class="tok-n">regions_order</span><span class="tok-p">[</span><span class="tok-n">i</span><span class="tok-p">];</span>
+	<span class="tok-p">}</span>
+
+	<span class="tok-n">Mat</span> <span class="tok-n">result</span><span class="tok-p">(</span><span class="tok-n">height</span><span class="tok-p">,</span><span class="tok-n">width</span><span class="tok-p">,</span><span class="tok-n">image</span><span class="tok-p">.</span><span class="tok-n">type</span><span class="tok-p">());</span>
+
+	<span class="tok-n">counter</span><span class="tok-o">=</span><span class="tok-mi">0</span><span class="tok-p">;</span>
+		<span class="tok-k">for</span><span class="tok-p">(</span><span class="tok-n">j</span><span class="tok-o">=</span><span class="tok-mi">0</span><span class="tok-p">;</span><span class="tok-n">j</span><span class="tok-o">&lt;</span><span class="tok-n">height</span><span class="tok-p">;</span><span class="tok-n">j</span><span class="tok-o">+=</span><span class="tok-n">height</span><span class="tok-o">/</span><span class="tok-n">N_v</span><span class="tok-p">){</span>
+			<span class="tok-k">for</span><span class="tok-p">(</span><span class="tok-n">i</span><span class="tok-o">=</span><span class="tok-mi">0</span><span class="tok-p">;</span><span class="tok-n">i</span><span class="tok-o">&lt;</span><span class="tok-n">width</span><span class="tok-p">;</span><span class="tok-n">i</span><span class="tok-o">+=</span><span class="tok-n">width</span><span class="tok-o">/</span><span class="tok-n">N_h</span><span class="tok-p">){</span>
+				<span class="tok-n">Mat</span> <span class="tok-n">region_of_interest</span> <span class="tok-o">=</span> <span class="tok-n">result</span><span class="tok-p">(</span><span class="tok-n">Rect</span><span class="tok-p">(</span><span class="tok-n">i</span><span class="tok-p">,</span><span class="tok-n">j</span><span class="tok-p">,</span><span class="tok-n">width</span><span class="tok-o">/</span><span class="tok-n">N_h</span><span class="tok-p">,</span><span class="tok-n">height</span><span class="tok-o">/</span><span class="tok-n">N_v</span><span class="tok-p">));</span>
+				<span class="tok-n">image</span><span class="tok-p">(</span><span class="tok-n">regions</span><span class="tok-p">[</span><span class="tok-n">regions_order</span><span class="tok-p">[</span><span class="tok-n">counter</span><span class="tok-p">]]).</span><span class="tok-n">copyTo</span><span class="tok-p">(</span><span class="tok-n">region_of_interest</span><span class="tok-p">);</span>
+				<span class="tok-n">counter</span><span class="tok-o">++</span><span class="tok-p">;</span>
+		<span class="tok-p">}</span>
+	<span class="tok-p">}</span>
+	<span class="tok-n">namedWindow</span><span class="tok-p">(</span><span class="tok-s">&quot;original&quot;</span><span class="tok-p">,</span><span class="tok-n">WINDOW_AUTOSIZE</span><span class="tok-p">);</span>
+	<span class="tok-n">namedWindow</span><span class="tok-p">(</span><span class="tok-s">&quot;result&quot;</span><span class="tok-p">,</span><span class="tok-n">WINDOW_AUTOSIZE</span><span class="tok-p">);</span>
+	<span class="tok-n">imshow</span><span class="tok-p">(</span><span class="tok-s">&quot;original&quot;</span><span class="tok-p">,</span><span class="tok-n">image</span><span class="tok-p">);</span>
+	<span class="tok-n">imshow</span><span class="tok-p">(</span><span class="tok-s">&quot;result&quot;</span><span class="tok-p">,</span><span class="tok-n">result</span><span class="tok-p">);</span>
+	<span class="tok-n">waitKey</span><span class="tok-p">(</span><span class="tok-mi">20000</span><span class="tok-p">);</span>
+<span class="tok-p">}</span></code></pre>
+</div>
+</div>
+</div>
 </div>
 </div>
 </div>
 <div id="footer">
 <div id="footer-text">
 Version <br>
-Last updated 2016-09-17 21:11:58 BRT
+Last updated 2016-09-17 21:43:35 BRT
 </div>
 </div>
 </body>
