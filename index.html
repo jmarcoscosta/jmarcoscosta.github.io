@@ -528,6 +528,11 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_laplacian_gaussian">4.6. Laplacian &amp; Gaussian</a></li>
 </ul>
 </li>
+<li><a href="#_spatial_filters_ii">5. Spatial filters II</a>
+<ul class="sectlevel2">
+<li><a href="#_tilt_shift_effect">5.1. Tilt Shift effect</a></li>
+</ul>
+</li>
 <li><a href="#_about_the_author">About the author</a></li>
 </ul>
 </div>
@@ -1883,6 +1888,148 @@ Since I have no camera connected, the code works for an specific image. As I hav
 </div>
 </div>
 <div class="sect1">
+<h2 id="_spatial_filters_ii">5. Spatial filters II</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_tilt_shift_effect">5.1. Tilt Shift effect</h3>
+<div class="paragraph">
+<p>There is a special effect from blurring only specific parts of an image, wich makes the "unblurred" part seems like a miniature photo. We can reproduce Tilt Shift effect through the code below, regulating with the trackbars where the blurrings starts (L1 parameter)/stops (L2 parameter) and how intense (D parameter) this blurring is.</p>
+</div>
+<div id="app-listing" class="listingblock">
+<div class="title">Tilt Shift</div>
+<div class="content">
+<pre class="pygments highlight"><code data-lang="cpp"><span class="tok-cp">#include &lt;iostream&gt;</span>
+<span class="tok-cp">#include &lt;opencv2/opencv.hpp&gt;</span>
+<span class="tok-cp">#include &lt;cmath&gt;</span>
+
+<span class="tok-k">using</span> <span class="tok-k">namespace</span> <span class="tok-n">cv</span><span class="tok-p">;</span>
+<span class="tok-k">using</span> <span class="tok-k">namespace</span> <span class="tok-n">std</span><span class="tok-p">;</span>
+
+<span class="tok-kt">double</span> <span class="tok-n">d</span><span class="tok-p">;</span>
+
+<span class="tok-kt">int</span> <span class="tok-n">l1_slider</span><span class="tok-o">=</span><span class="tok-mi">0</span><span class="tok-p">;</span>
+<span class="tok-kt">int</span> <span class="tok-n">l1_slider_max</span><span class="tok-p">;</span>
+
+<span class="tok-kt">int</span> <span class="tok-n">l2_slider</span><span class="tok-o">=</span><span class="tok-mi">0</span><span class="tok-p">;</span>
+<span class="tok-kt">int</span> <span class="tok-n">l2_slider_max</span><span class="tok-p">;</span>
+
+<span class="tok-kt">int</span> <span class="tok-n">d_slider</span><span class="tok-o">=</span><span class="tok-mi">0</span><span class="tok-p">;</span>
+<span class="tok-kt">int</span> <span class="tok-n">d_slider_max</span><span class="tok-o">=</span><span class="tok-mi">100</span><span class="tok-p">;</span>
+
+<span class="tok-n">Mat</span> <span class="tok-n">original</span><span class="tok-p">,</span><span class="tok-n">auxiliar</span><span class="tok-p">,</span> <span class="tok-k">final</span><span class="tok-p">;</span>
+
+<span class="tok-kt">char</span> <span class="tok-n">TrackbarName</span><span class="tok-p">[</span><span class="tok-mi">50</span><span class="tok-p">];</span>
+
+<span class="tok-kt">double</span> <span class="tok-nf">calc_alpha</span><span class="tok-p">(</span><span class="tok-kt">double</span> <span class="tok-n">x</span><span class="tok-p">,</span><span class="tok-kt">double</span> <span class="tok-n">l1</span><span class="tok-p">,</span><span class="tok-kt">double</span> <span class="tok-n">l2</span><span class="tok-p">,</span><span class="tok-kt">double</span> <span class="tok-n">d1</span><span class="tok-p">){</span>
+    <span class="tok-k">return</span> <span class="tok-mf">0.5</span><span class="tok-o">*</span><span class="tok-p">(</span><span class="tok-n">tanh</span><span class="tok-p">((</span><span class="tok-n">x</span><span class="tok-o">-</span><span class="tok-n">l1</span><span class="tok-p">)</span><span class="tok-o">/</span><span class="tok-n">d</span><span class="tok-p">)</span><span class="tok-o">-</span><span class="tok-n">tanh</span><span class="tok-p">((</span><span class="tok-n">x</span><span class="tok-o">-</span><span class="tok-n">l2</span><span class="tok-p">)</span><span class="tok-o">/</span><span class="tok-n">d</span><span class="tok-p">));</span> <span class="tok-c1">//returns alpha for weighing</span>
+<span class="tok-p">}</span>
+
+<span class="tok-kt">void</span> <span class="tok-nf">implement_addweight</span><span class="tok-p">(</span><span class="tok-n">Mat</span><span class="tok-o">&amp;</span> <span class="tok-n">m1</span><span class="tok-p">,</span> <span class="tok-n">Mat</span><span class="tok-o">&amp;</span> <span class="tok-n">m2</span><span class="tok-p">){</span> <span class="tok-c1">//makes weighing</span>
+  <span class="tok-k">for</span><span class="tok-p">(</span><span class="tok-kt">int</span> <span class="tok-n">i</span><span class="tok-o">=</span><span class="tok-mi">2</span><span class="tok-p">;</span><span class="tok-n">i</span><span class="tok-o">&lt;</span><span class="tok-n">m1</span><span class="tok-p">.</span><span class="tok-n">rows</span><span class="tok-p">;</span><span class="tok-n">i</span><span class="tok-o">++</span><span class="tok-p">){</span>
+    <span class="tok-kt">double</span> <span class="tok-n">a0</span> <span class="tok-o">=</span> <span class="tok-n">calc_alpha</span><span class="tok-p">(</span><span class="tok-n">i</span><span class="tok-p">,</span><span class="tok-n">l1_slider</span><span class="tok-p">,</span><span class="tok-n">l2_slider</span><span class="tok-p">,</span><span class="tok-n">d</span><span class="tok-p">);</span>
+    <span class="tok-n">addWeighted</span><span class="tok-p">(</span><span class="tok-n">m1</span><span class="tok-p">.</span><span class="tok-n">row</span><span class="tok-p">(</span><span class="tok-n">i</span><span class="tok-p">),</span><span class="tok-n">a0</span><span class="tok-p">,</span> <span class="tok-n">m2</span><span class="tok-p">.</span><span class="tok-n">row</span><span class="tok-p">(</span><span class="tok-n">i</span><span class="tok-p">),</span><span class="tok-mi">1</span><span class="tok-o">-</span><span class="tok-n">a0</span><span class="tok-p">,</span><span class="tok-mf">0.0</span><span class="tok-p">,</span><span class="tok-k">final</span><span class="tok-p">.</span><span class="tok-n">row</span><span class="tok-p">(</span><span class="tok-n">i</span><span class="tok-p">));</span>
+  <span class="tok-p">}</span>
+<span class="tok-p">}</span>
+
+<span class="tok-kt">void</span> <span class="tok-nf">on_trackbar_d</span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-p">,</span> <span class="tok-kt">void</span><span class="tok-o">*</span><span class="tok-p">){</span>
+  <span class="tok-n">d</span> <span class="tok-o">=</span> <span class="tok-p">(</span><span class="tok-kt">double</span><span class="tok-p">)</span> <span class="tok-n">d_slider</span><span class="tok-p">;</span>
+  <span class="tok-n">implement_addweight</span><span class="tok-p">(</span><span class="tok-n">original</span><span class="tok-p">,</span><span class="tok-n">auxiliar</span><span class="tok-p">);</span>
+  <span class="tok-k">final</span><span class="tok-p">.</span><span class="tok-n">convertTo</span><span class="tok-p">(</span><span class="tok-k">final</span><span class="tok-p">,</span> <span class="tok-n">CV_8UC3</span><span class="tok-p">);</span>
+  <span class="tok-n">imshow</span><span class="tok-p">(</span><span class="tok-s">&quot;tiltshift&quot;</span><span class="tok-p">,</span><span class="tok-k">final</span><span class="tok-p">);</span>
+<span class="tok-p">}</span>
+
+<span class="tok-kt">void</span> <span class="tok-nf">on_trackbar_l1</span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-p">,</span> <span class="tok-kt">void</span><span class="tok-o">*</span><span class="tok-p">){</span>
+  <span class="tok-n">implement_addweight</span><span class="tok-p">(</span><span class="tok-n">original</span><span class="tok-p">,</span><span class="tok-n">auxiliar</span><span class="tok-p">);</span>
+  <span class="tok-k">final</span><span class="tok-p">.</span><span class="tok-n">convertTo</span><span class="tok-p">(</span><span class="tok-k">final</span><span class="tok-p">,</span> <span class="tok-n">CV_8UC3</span><span class="tok-p">);</span>
+  <span class="tok-n">imshow</span><span class="tok-p">(</span><span class="tok-s">&quot;tiltshift&quot;</span><span class="tok-p">,</span><span class="tok-k">final</span><span class="tok-p">);</span>
+<span class="tok-p">}</span>
+
+<span class="tok-kt">void</span> <span class="tok-nf">on_trackbar_l2</span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-p">,</span> <span class="tok-kt">void</span><span class="tok-o">*</span><span class="tok-p">){</span>
+  <span class="tok-n">implement_addweight</span><span class="tok-p">(</span><span class="tok-n">original</span><span class="tok-p">,</span><span class="tok-n">auxiliar</span><span class="tok-p">);</span>
+  <span class="tok-k">final</span><span class="tok-p">.</span><span class="tok-n">convertTo</span><span class="tok-p">(</span><span class="tok-k">final</span><span class="tok-p">,</span> <span class="tok-n">CV_8UC3</span><span class="tok-p">);</span>
+  <span class="tok-n">imshow</span><span class="tok-p">(</span><span class="tok-s">&quot;tiltshift&quot;</span><span class="tok-p">,</span><span class="tok-k">final</span><span class="tok-p">);</span>
+<span class="tok-p">}</span>
+
+
+
+<span class="tok-kt">int</span> <span class="tok-nf">main</span><span class="tok-p">(</span><span class="tok-kt">int</span> <span class="tok-n">argvc</span><span class="tok-p">,</span> <span class="tok-kt">char</span><span class="tok-o">**</span> <span class="tok-n">argv</span><span class="tok-p">){</span>
+
+  <span class="tok-n">original</span> <span class="tok-o">=</span> <span class="tok-n">imread</span><span class="tok-p">(</span><span class="tok-n">argv</span><span class="tok-p">[</span><span class="tok-mi">1</span><span class="tok-p">],</span><span class="tok-n">CV_LOAD_IMAGE_COLOR</span><span class="tok-p">);</span>
+  <span class="tok-n">namedWindow</span><span class="tok-p">(</span><span class="tok-s">&quot;tiltshift&quot;</span><span class="tok-p">,</span> <span class="tok-n">WINDOW_NORMAL</span><span class="tok-p">);</span> <span class="tok-c1">//creating the window</span>
+  <span class="tok-n">auxiliar</span><span class="tok-o">=</span><span class="tok-n">original</span><span class="tok-p">.</span><span class="tok-n">clone</span><span class="tok-p">();</span>
+
+  <span class="tok-kt">float</span> <span class="tok-n">media</span><span class="tok-p">[]</span> <span class="tok-o">=</span> <span class="tok-p">{</span><span class="tok-mi">1</span><span class="tok-p">,</span><span class="tok-mi">1</span><span class="tok-p">,</span><span class="tok-mi">1</span><span class="tok-p">,</span>
+                   <span class="tok-mi">1</span><span class="tok-p">,</span><span class="tok-mi">1</span><span class="tok-p">,</span><span class="tok-mi">1</span><span class="tok-p">,</span>
+                   <span class="tok-mi">1</span><span class="tok-p">,</span><span class="tok-mi">1</span><span class="tok-p">,</span><span class="tok-mi">1</span><span class="tok-p">};</span>
+  <span class="tok-n">Mat</span> <span class="tok-n">mask</span> <span class="tok-o">=</span> <span class="tok-n">Mat</span><span class="tok-p">(</span><span class="tok-mi">3</span><span class="tok-p">,</span><span class="tok-mi">3</span><span class="tok-p">,</span><span class="tok-n">CV_32F</span><span class="tok-p">,</span><span class="tok-n">media</span><span class="tok-p">);</span>
+  <span class="tok-n">scaleAdd</span><span class="tok-p">(</span><span class="tok-n">mask</span><span class="tok-p">,</span><span class="tok-mi">1</span><span class="tok-o">/</span><span class="tok-mf">9.0</span><span class="tok-p">,</span><span class="tok-n">Mat</span><span class="tok-o">::</span><span class="tok-n">zeros</span><span class="tok-p">(</span><span class="tok-mi">3</span><span class="tok-p">,</span><span class="tok-mi">3</span><span class="tok-p">,</span><span class="tok-n">CV_32F</span><span class="tok-p">),</span> <span class="tok-n">mask</span><span class="tok-p">);</span> <span class="tok-c1">//making the media kernel for the filter2D</span>
+
+  <span class="tok-kt">int</span> <span class="tok-n">filter_times</span><span class="tok-p">;</span>
+  <span class="tok-n">cout</span><span class="tok-o">&lt;&lt;</span><span class="tok-s">&quot;You can apply the media filter for blurring X times. Define X:&quot;</span><span class="tok-o">&lt;&lt;</span><span class="tok-n">endl</span><span class="tok-p">;</span>
+  <span class="tok-n">cin</span><span class="tok-o">&gt;&gt;</span><span class="tok-n">filter_times</span><span class="tok-p">;</span>
+
+  <span class="tok-n">l1_slider_max</span><span class="tok-o">=</span><span class="tok-n">original</span><span class="tok-p">.</span><span class="tok-n">size</span><span class="tok-p">().</span><span class="tok-n">height</span><span class="tok-p">;</span>
+
+  <span class="tok-n">l2_slider_max</span><span class="tok-o">=</span><span class="tok-n">original</span><span class="tok-p">.</span><span class="tok-n">size</span><span class="tok-p">().</span><span class="tok-n">height</span><span class="tok-p">;</span>
+
+  <span class="tok-k">for</span><span class="tok-p">(</span><span class="tok-kt">int</span> <span class="tok-n">i</span><span class="tok-o">=</span><span class="tok-mi">0</span><span class="tok-p">;</span><span class="tok-n">i</span><span class="tok-o">&lt;</span><span class="tok-n">filter_times</span><span class="tok-p">;</span><span class="tok-n">i</span><span class="tok-o">++</span><span class="tok-p">){</span>
+      <span class="tok-c1">//applying the filter for blurring</span>
+      <span class="tok-n">filter2D</span><span class="tok-p">(</span><span class="tok-n">auxiliar</span><span class="tok-p">,</span> <span class="tok-n">auxiliar</span><span class="tok-p">,</span> <span class="tok-n">original</span><span class="tok-p">.</span><span class="tok-n">depth</span><span class="tok-p">(),</span> <span class="tok-n">mask</span><span class="tok-p">,</span> <span class="tok-n">Point</span><span class="tok-p">(</span><span class="tok-mi">1</span><span class="tok-p">,</span><span class="tok-mi">1</span><span class="tok-p">),</span> <span class="tok-mi">0</span><span class="tok-p">);</span>
+  <span class="tok-p">}</span>
+
+  <span class="tok-n">original</span><span class="tok-p">.</span><span class="tok-n">convertTo</span><span class="tok-p">(</span><span class="tok-n">original</span><span class="tok-p">,</span><span class="tok-n">CV_32FC3</span><span class="tok-p">);</span>
+  <span class="tok-n">auxiliar</span><span class="tok-p">.</span><span class="tok-n">convertTo</span><span class="tok-p">(</span><span class="tok-n">auxiliar</span><span class="tok-p">,</span><span class="tok-n">CV_32FC3</span><span class="tok-p">);</span>
+  <span class="tok-k">final</span> <span class="tok-o">=</span> <span class="tok-n">original</span><span class="tok-p">.</span><span class="tok-n">clone</span><span class="tok-p">();</span>
+
+  <span class="tok-c1">//creating the trackbars</span>
+  <span class="tok-n">sprintf</span><span class="tok-p">(</span> <span class="tok-n">TrackbarName</span><span class="tok-p">,</span> <span class="tok-s">&quot;D x %d&quot;</span><span class="tok-p">,</span> <span class="tok-n">d_slider_max</span> <span class="tok-p">);</span>
+  <span class="tok-n">createTrackbar</span><span class="tok-p">(</span> <span class="tok-n">TrackbarName</span><span class="tok-p">,</span> <span class="tok-s">&quot;tiltshift&quot;</span><span class="tok-p">,</span><span class="tok-o">&amp;</span><span class="tok-n">d_slider</span><span class="tok-p">,</span> <span class="tok-n">d_slider_max</span><span class="tok-p">,</span> <span class="tok-n">on_trackbar_d</span><span class="tok-p">);</span>
+  <span class="tok-c1">//showing the trackbars</span>
+  <span class="tok-n">on_trackbar_d</span><span class="tok-p">(</span><span class="tok-n">d_slider</span><span class="tok-p">,</span> <span class="tok-mi">0</span> <span class="tok-p">);</span>
+
+  <span class="tok-c1">//creating the trackbars</span>
+  <span class="tok-n">sprintf</span><span class="tok-p">(</span> <span class="tok-n">TrackbarName</span><span class="tok-p">,</span> <span class="tok-s">&quot;L1 x %d&quot;</span><span class="tok-p">,</span> <span class="tok-n">l1_slider_max</span> <span class="tok-p">);</span>
+  <span class="tok-n">createTrackbar</span><span class="tok-p">(</span> <span class="tok-n">TrackbarName</span><span class="tok-p">,</span> <span class="tok-s">&quot;tiltshift&quot;</span><span class="tok-p">,</span><span class="tok-o">&amp;</span><span class="tok-n">l1_slider</span><span class="tok-p">,</span><span class="tok-n">l1_slider_max</span><span class="tok-p">,</span><span class="tok-n">on_trackbar_l1</span><span class="tok-p">);</span>
+  <span class="tok-c1">//showing the trackbars</span>
+  <span class="tok-n">on_trackbar_l1</span><span class="tok-p">(</span><span class="tok-n">l1_slider</span><span class="tok-p">,</span> <span class="tok-mi">0</span> <span class="tok-p">);</span>
+
+  <span class="tok-c1">//creating the trackbars</span>
+  <span class="tok-n">sprintf</span><span class="tok-p">(</span> <span class="tok-n">TrackbarName</span><span class="tok-p">,</span> <span class="tok-s">&quot;L2 x %d&quot;</span><span class="tok-p">,</span> <span class="tok-n">l2_slider_max</span> <span class="tok-p">);</span>
+  <span class="tok-n">createTrackbar</span><span class="tok-p">(</span> <span class="tok-n">TrackbarName</span><span class="tok-p">,</span> <span class="tok-s">&quot;tiltshift&quot;</span><span class="tok-p">,</span><span class="tok-o">&amp;</span><span class="tok-n">l2_slider</span><span class="tok-p">,</span><span class="tok-n">l2_slider_max</span><span class="tok-p">,</span><span class="tok-n">on_trackbar_l2</span><span class="tok-p">);</span>
+  <span class="tok-c1">//showing the trackbars</span>
+  <span class="tok-n">on_trackbar_l2</span><span class="tok-p">(</span><span class="tok-n">l2_slider</span><span class="tok-p">,</span> <span class="tok-mi">0</span> <span class="tok-p">);</span>
+
+  <span class="tok-n">waitKey</span><span class="tok-p">(</span><span class="tok-mi">0</span><span class="tok-p">);</span>
+  <span class="tok-kt">bool</span> <span class="tok-n">save</span><span class="tok-p">;</span>
+  <span class="tok-n">cout</span><span class="tok-o">&lt;&lt;</span><span class="tok-s">&quot;Save: For Yes, press 1, for No, press 0&quot;</span><span class="tok-o">&lt;&lt;</span><span class="tok-n">endl</span><span class="tok-p">;</span>
+  <span class="tok-n">cin</span><span class="tok-o">&gt;&gt;</span><span class="tok-n">save</span><span class="tok-p">;</span>
+  <span class="tok-k">if</span><span class="tok-p">(</span><span class="tok-n">save</span><span class="tok-p">)</span><span class="tok-n">imwrite</span><span class="tok-p">(</span><span class="tok-s">&quot;tiltshifted.jpeg&quot;</span><span class="tok-p">,</span><span class="tok-k">final</span><span class="tok-p">);</span>
+
+  <span class="tok-k">return</span> <span class="tok-mi">0</span><span class="tok-p">;</span>
+<span class="tok-p">}</span></code></pre>
+</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="print.png" alt="print">
+</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="lituania.jpeg" alt="lituania">
+</div>
+<div class="title">Figure 23. Vilnius, Lituania (original)</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="tiltshifted.jpeg" alt="tiltshifted">
+</div>
+<div class="title">Figure 24. Vilnius, Lituania (tilt shifted)</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
 <h2 id="_about_the_author">About the author</h2>
 <div class="sectionbody">
 <div class="paragraph">
@@ -1894,7 +2041,7 @@ Since I have no camera connected, the code works for an specific image. As I hav
 <div id="footer">
 <div id="footer-text">
 Version <br>
-Last updated 2016-09-18 22:42:38 BRT
+Last updated 2016-09-19 02:59:59 BRT
 </div>
 </div>
 </body>
