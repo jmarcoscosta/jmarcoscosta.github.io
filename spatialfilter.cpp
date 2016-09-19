@@ -69,7 +69,7 @@ int main(int argvc, char** argv){
     mask = Mat(3, 3, CV_32F, media);
     scaleAdd(mask, 1/9.0, Mat::zeros(3,3,CV_32F), mask1);
     mask = mask1;
-    filter2D(frame32f, frameFiltered, frame32f.depth(), mask, Point(1,1), 0); 
+    filter2D(frame32f, frameFiltered, frame32f.depth(),mask,Point(1,1),0); 
     if(absolut)frameFiltered=abs(frameFiltered);
     frameFiltered.convertTo(result, CV_8U);
     hconcat(frame,result,result);
@@ -79,15 +79,15 @@ int main(int argvc, char** argv){
     mask = Mat(3, 3, CV_32F, gauss);
     scaleAdd(mask, 1/16.0, Mat::zeros(3,3,CV_32F), mask1);
     mask = mask1;
-    filter2D(frame32f, frameFiltered, frame32f.depth(), mask, Point(1,1), 0);
+    filter2D(frame32f, frameFiltered, frame32f.depth(),mask,Point(1,1),0);
     if(absolut)frameFiltered=abs(frameFiltered);
     frameFiltered.convertTo(result, CV_8U);
     hconcat(frame,result,result);
     imwrite("gaussian_filter_result.jpg",result);
     break;
-  case 'h':
+   case 'h':
     mask = Mat(3, 3, CV_32F, horizontal);
-    filter2D(frame32f, frameFiltered, frame32f.depth(), mask, Point(1,1), 0);
+    filter2D(frame32f, frameFiltered, frame32f.depth(),mask,Point(1,1),0);
     if(absolut)frameFiltered=abs(frameFiltered);
     frameFiltered.convertTo(result, CV_8U);
     hconcat(frame,result,result);
@@ -95,7 +95,7 @@ int main(int argvc, char** argv){
     break;
   case 'v':
     mask = Mat(3, 3, CV_32F, vertical);
-    filter2D(frame32f, frameFiltered, frame32f.depth(), mask, Point(1,1), 0);
+    filter2D(frame32f, frameFiltered, frame32f.depth(),mask,Point(1,1),0);
     if(absolut)frameFiltered=abs(frameFiltered);
     frameFiltered.convertTo(result, CV_8U);
     hconcat(frame,result,result);
@@ -103,7 +103,7 @@ int main(int argvc, char** argv){
     break;
   case 'l':
     mask = Mat(3, 3, CV_32F, laplacian);
-    filter2D(frame32f, frameFiltered, frame32f.depth(), mask, Point(1,1), 0);
+    filter2D(frame32f, frameFiltered, frame32f.depth(),mask,Point(1,1),0);
     if(absolut)frameFiltered=abs(frameFiltered);
     frameFiltered.convertTo(result, CV_8U);
     hconcat(frame,result,result);
@@ -114,8 +114,8 @@ int main(int argvc, char** argv){
     scaleAdd(maskG, 1/16.0, Mat::zeros(3,3,CV_32F), mask1);
     maskG = mask1;
     Mat maskL=Mat(3,3,CV_32F,laplacian);
-    filter2D(frame32f, frameFiltered, frame32f.depth(), maskG, Point(1,1), 0);
-    filter2D(frameFiltered, frameFiltered, frameFiltered.depth(), maskL, Point(1,1), 0);
+    filter2D(frame32f, frameFiltered, frame32f.depth(),maskG,Point(1,1),0);
+    filter2D(frameFiltered, frameFiltered, frameFiltered.depth(),maskL,Point(1,1),0);
     if(absolut) frameFiltered=abs(frameFiltered);
     frameFiltered.convertTo(result, CV_8U);
     hconcat(frame,result,result);
