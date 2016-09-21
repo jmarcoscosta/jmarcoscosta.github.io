@@ -1950,14 +1950,30 @@ Since I have no camera connected, the code works for an specific image. As I hav
   <span class="tok-n">imshow</span><span class="tok-p">(</span><span class="tok-s">&quot;tiltshift&quot;</span><span class="tok-p">,</span><span class="tok-k">final</span><span class="tok-p">);</span>
 <span class="tok-p">}</span>
 
+<span class="tok-kt">void</span> <span class="tok-nf">change_saturation</span><span class="tok-p">(</span><span class="tok-n">Mat</span><span class="tok-o">&amp;</span> <span class="tok-n">im</span><span class="tok-p">,</span> <span class="tok-kt">double</span> <span class="tok-n">s</span><span class="tok-p">){</span>
+  <span class="tok-n">vector</span><span class="tok-o">&lt;</span><span class="tok-n">Mat</span><span class="tok-o">&gt;</span> <span class="tok-n">layers</span><span class="tok-p">;</span>
+  <span class="tok-n">cvtColor</span><span class="tok-p">(</span><span class="tok-n">im</span><span class="tok-p">,</span><span class="tok-n">im</span><span class="tok-p">,</span><span class="tok-n">CV_RGB2HSV</span><span class="tok-p">);</span>
+  <span class="tok-n">split</span><span class="tok-p">(</span><span class="tok-n">im</span><span class="tok-p">,</span><span class="tok-n">layers</span><span class="tok-p">);</span>
+  <span class="tok-n">scaleAdd</span><span class="tok-p">(</span><span class="tok-n">layers</span><span class="tok-p">[</span><span class="tok-mi">1</span><span class="tok-p">],</span><span class="tok-n">s</span><span class="tok-p">,</span><span class="tok-n">Mat</span><span class="tok-o">::</span><span class="tok-n">zeros</span><span class="tok-p">(</span><span class="tok-n">im</span><span class="tok-p">.</span><span class="tok-n">rows</span><span class="tok-p">,</span><span class="tok-n">im</span><span class="tok-p">.</span><span class="tok-n">cols</span><span class="tok-p">,</span><span class="tok-n">layers</span><span class="tok-p">[</span><span class="tok-mi">1</span><span class="tok-p">].</span><span class="tok-n">type</span><span class="tok-p">()),</span><span class="tok-n">layers</span><span class="tok-p">[</span><span class="tok-mi">1</span><span class="tok-p">]);</span>
+  <span class="tok-n">cvtColor</span><span class="tok-p">(</span><span class="tok-n">im</span><span class="tok-p">,</span><span class="tok-n">im</span><span class="tok-p">,</span><span class="tok-n">CV_HSV2RGB</span><span class="tok-p">);</span>
+<span class="tok-p">}</span>
+
 
 
 <span class="tok-kt">int</span> <span class="tok-nf">main</span><span class="tok-p">(</span><span class="tok-kt">int</span> <span class="tok-n">argvc</span><span class="tok-p">,</span> <span class="tok-kt">char</span><span class="tok-o">**</span> <span class="tok-n">argv</span><span class="tok-p">){</span>
 
   <span class="tok-n">original</span> <span class="tok-o">=</span> <span class="tok-n">imread</span><span class="tok-p">(</span><span class="tok-n">argv</span><span class="tok-p">[</span><span class="tok-mi">1</span><span class="tok-p">],</span><span class="tok-n">CV_LOAD_IMAGE_COLOR</span><span class="tok-p">);</span>
+  <span class="tok-kt">double</span> <span class="tok-n">s</span><span class="tok-p">;</span>
+  <span class="tok-kt">bool</span> <span class="tok-n">saturate</span><span class="tok-p">;</span>
+  <span class="tok-n">cout</span><span class="tok-o">&lt;&lt;</span><span class="tok-s">&quot;Do you want to change image saturation? Yes: 1 ; No: 0&quot;</span><span class="tok-o">&lt;&lt;</span><span class="tok-n">endl</span><span class="tok-p">;</span>
+  <span class="tok-n">cin</span><span class="tok-o">&gt;&gt;</span><span class="tok-n">saturate</span><span class="tok-p">;</span>
+  <span class="tok-k">if</span><span class="tok-p">(</span><span class="tok-n">saturate</span><span class="tok-p">){</span>
+  <span class="tok-n">cout</span><span class="tok-o">&lt;&lt;</span><span class="tok-s">&quot;Choose the rate (between 0.0 and 1.0 to decrease, and &gt;&gt;1.0 to increase)&quot;</span><span class="tok-o">&lt;&lt;</span><span class="tok-n">endl</span><span class="tok-p">;</span>
+  <span class="tok-n">cin</span><span class="tok-o">&gt;&gt;</span><span class="tok-n">s</span><span class="tok-p">;</span>
+  <span class="tok-n">change_saturation</span><span class="tok-p">(</span><span class="tok-n">original</span><span class="tok-p">,</span><span class="tok-n">s</span><span class="tok-p">);</span>
+  <span class="tok-p">}</span>
   <span class="tok-n">namedWindow</span><span class="tok-p">(</span><span class="tok-s">&quot;tiltshift&quot;</span><span class="tok-p">,</span> <span class="tok-n">WINDOW_NORMAL</span><span class="tok-p">);</span> <span class="tok-c1">//creating the window</span>
   <span class="tok-n">auxiliar</span><span class="tok-o">=</span><span class="tok-n">original</span><span class="tok-p">.</span><span class="tok-n">clone</span><span class="tok-p">();</span>
-
   <span class="tok-kt">float</span> <span class="tok-n">media</span><span class="tok-p">[]</span> <span class="tok-o">=</span> <span class="tok-p">{</span><span class="tok-mi">1</span><span class="tok-p">,</span><span class="tok-mi">1</span><span class="tok-p">,</span><span class="tok-mi">1</span><span class="tok-p">,</span>
                    <span class="tok-mi">1</span><span class="tok-p">,</span><span class="tok-mi">1</span><span class="tok-p">,</span><span class="tok-mi">1</span><span class="tok-p">,</span>
                    <span class="tok-mi">1</span><span class="tok-p">,</span><span class="tok-mi">1</span><span class="tok-p">,</span><span class="tok-mi">1</span><span class="tok-p">};</span>
@@ -1981,6 +1997,7 @@ Since I have no camera connected, the code works for an specific image. As I hav
   <span class="tok-n">auxiliar</span><span class="tok-p">.</span><span class="tok-n">convertTo</span><span class="tok-p">(</span><span class="tok-n">auxiliar</span><span class="tok-p">,</span><span class="tok-n">CV_32FC3</span><span class="tok-p">);</span>
   <span class="tok-k">final</span> <span class="tok-o">=</span> <span class="tok-n">original</span><span class="tok-p">.</span><span class="tok-n">clone</span><span class="tok-p">();</span>
 
+
   <span class="tok-c1">//creating the trackbars</span>
   <span class="tok-n">sprintf</span><span class="tok-p">(</span> <span class="tok-n">TrackbarName</span><span class="tok-p">,</span> <span class="tok-s">&quot;D x %d&quot;</span><span class="tok-p">,</span> <span class="tok-n">d_slider_max</span> <span class="tok-p">);</span>
   <span class="tok-n">createTrackbar</span><span class="tok-p">(</span> <span class="tok-n">TrackbarName</span><span class="tok-p">,</span> <span class="tok-s">&quot;tiltshift&quot;</span><span class="tok-p">,</span><span class="tok-o">&amp;</span><span class="tok-n">d_slider</span><span class="tok-p">,</span> <span class="tok-n">d_slider_max</span><span class="tok-p">,</span> <span class="tok-n">on_trackbar_d</span><span class="tok-p">);</span>
@@ -2003,7 +2020,7 @@ Since I have no camera connected, the code works for an specific image. As I hav
   <span class="tok-kt">bool</span> <span class="tok-n">save</span><span class="tok-p">;</span>
   <span class="tok-n">cout</span><span class="tok-o">&lt;&lt;</span><span class="tok-s">&quot;Save: For Yes, press 1, for No, press 0&quot;</span><span class="tok-o">&lt;&lt;</span><span class="tok-n">endl</span><span class="tok-p">;</span>
   <span class="tok-n">cin</span><span class="tok-o">&gt;&gt;</span><span class="tok-n">save</span><span class="tok-p">;</span>
-  <span class="tok-k">if</span><span class="tok-p">(</span><span class="tok-n">save</span><span class="tok-p">)</span><span class="tok-n">imwrite</span><span class="tok-p">(</span><span class="tok-s">&quot;tiltshifted.jpeg&quot;</span><span class="tok-p">,</span><span class="tok-k">final</span><span class="tok-p">);</span>
+  <span class="tok-k">if</span><span class="tok-p">(</span><span class="tok-n">save</span><span class="tok-p">)</span><span class="tok-n">imwrite</span><span class="tok-p">(</span><span class="tok-s">&quot;tiltshifted_image.jpeg&quot;</span><span class="tok-p">,</span><span class="tok-k">final</span><span class="tok-p">);</span>
 
   <span class="tok-k">return</span> <span class="tok-mi">0</span><span class="tok-p">;</span>
 <span class="tok-p">}</span></code></pre>
@@ -2023,9 +2040,9 @@ Since I have no camera connected, the code works for an specific image. As I hav
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="tiltshifted.jpeg" alt="tiltshifted">
+<img src="tiltshifted_image.jpeg" alt="tiltshifted image">
 </div>
-<div class="title">Figure 25. Vilnius, Lituania (tilt shifted)</div>
+<div class="title">Figure 25. Vilnius, Lituania (tiltshifted)</div>
 </div>
 </div>
 </div>
@@ -2042,7 +2059,7 @@ Since I have no camera connected, the code works for an specific image. As I hav
 <div id="footer">
 <div id="footer-text">
 Version <br>
-Last updated 2016-09-19 03:03:12 BRT
+Last updated 2016-09-20 21:50:33 BRT
 </div>
 </div>
 </body>

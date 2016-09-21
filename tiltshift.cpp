@@ -50,14 +50,30 @@ void on_trackbar_l2(int, void*){
   imshow("tiltshift",final);
 }
 
+void change_saturation(Mat& im, double s){
+  vector<Mat> layers;
+  cvtColor(im,im,CV_RGB2HSV);
+  split(im,layers);
+  scaleAdd(layers[1],s,Mat::zeros(im.rows,im.cols,layers[1].type()),layers[1]);
+  cvtColor(im,im,CV_HSV2RGB);
+}
+
 
 
 int main(int argvc, char** argv){
 
   original = imread(argv[1],CV_LOAD_IMAGE_COLOR);
+  double s;
+  bool saturate;
+  cout<<"Do you want to change image saturation? Yes: 1 ; No: 0"<<endl;
+  cin>>saturate;
+  if(saturate){
+  cout<<"Choose the rate (between 0.0 and 1.0 to decrease, and >>1.0 to increase)"<<endl;
+  cin>>s;
+  change_saturation(original,s);
+  }
   namedWindow("tiltshift", WINDOW_NORMAL); //creating the window
   auxiliar=original.clone();
-
   float media[] = {1,1,1,
                    1,1,1,
                    1,1,1};
@@ -80,6 +96,7 @@ int main(int argvc, char** argv){
   original.convertTo(original,CV_32FC3);
   auxiliar.convertTo(auxiliar,CV_32FC3);
   final = original.clone();
+
   
   //creating the trackbars
   sprintf( TrackbarName, "D x %d", d_slider_max );
@@ -103,7 +120,7 @@ int main(int argvc, char** argv){
   bool save;
   cout<<"Save: For Yes, press 1, for No, press 0"<<endl;
   cin>>save;
-  if(save)imwrite("tiltshifted.jpeg",final);
+  if(save)imwrite("tiltshifted_image.jpeg",final);
 
   return 0;
 }
