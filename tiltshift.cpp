@@ -56,6 +56,11 @@ void change_saturation(Mat& im, double s){
   split(im,layers);
   scaleAdd(layers[1],s,Mat::zeros(im.rows,im.cols,layers[1].type()),layers[1]);
   cvtColor(im,im,CV_HSV2RGB);
+/*
+  equalizeHist(layers[0],layers[0]);
+  equalizeHist(layers[1],layers[1]);
+  equalizeHist(layers[2],layers[2]);*/
+
 }
 
 
@@ -68,7 +73,7 @@ int main(int argvc, char** argv){
   cout<<"Do you want to change image saturation? Yes: 1 ; No: 0"<<endl;
   cin>>saturate;
   if(saturate){
-  cout<<"Choose the rate (between 0.0 and 1.0 to decrease, and >>1.0 to increase)"<<endl;
+  cout<<"Choose the rate (between 0.0 and 1.0 to decrease, and >1.0 to increase)"<<endl;
   cin>>s;
   change_saturation(original,s);
   }
@@ -120,7 +125,7 @@ int main(int argvc, char** argv){
   bool save;
   cout<<"Save: For Yes, press 1, for No, press 0"<<endl;
   cin>>save;
-  if(save)imwrite("tiltshifted_image.jpeg",final);
+  if(save)imwrite("tiltshifted_image_equalized.jpeg",final);
 
   return 0;
 }
