@@ -10,32 +10,33 @@
 
 using namespace std;
 using namespace cv;
-
+/*
 #define STEP 3
 #define JITTER 3
-#define RAIO 3
+#define RAIO 3*/
 
-int main(int argc, char** argv){
+int STEP_SLIDER=1;
+int STEP_SLIDER_MAX;
+
+int JITTER_SLIDER=1;
+int JITTER_SLIDER_MAX;
+
+int RAIO_SLIDER=1;
+int RAIO_SLIDER_MAX;
+
+Mat image,points;
+char TrackbarName[50];
+
+void pointillism(Mat &im,int STEP, int RAIO, int JITTER){
+  Mat frame;
   vector<int> yrange;
   vector<int> xrange;
-
-  Mat image, frame, points;
-
   int width, height, gray;
   int x, y;
-
-  image= imread(argv[1],CV_LOAD_IMAGE_GRAYSCALE);
-
   srand(time(0));
 
-  if(!image.data){
-	cout << "nao abriu" << argv[1] << endl;
-    cout << argv[0] << " imagem.jpg";
-    exit(0);
-  }
-
-  width=image.size().width;
-  height=image.size().height;
+  width=im.size().width;
+  height=im.size().height;
 
   xrange.resize(height/STEP);
   yrange.resize(width/STEP);
@@ -60,7 +61,7 @@ int main(int argc, char** argv){
     for(auto j : yrange){
       x = i+rand()%(2*JITTER)-JITTER+1;
       y = j+rand()%(2*JITTER)-JITTER+1;
-      gray = image.at<uchar>(x,y);
+      gray = im.at<uchar>(x,y);
       circle(points,
              cv::Point(y,x),
              RAIO,
@@ -69,6 +70,54 @@ int main(int argc, char** argv){
              CV_AA);
     }
   }
-  imwrite("pontos2.jpg", points);
-  return 0;
+
+}
+
+void on_trackbar_STEP(int, void*){
+    pointillism(image,STEP_SLIDER,RAIO_SLIDER,JITTER_SLIDER);
+    imshow("points",points);
+
+}
+void on_trackbar_JITTER(int, void*){
+    pointillism(image,STEP_SLIDER,RAIO_SLIDER,JITTER_SLIDER);
+    imshow("points",points);
+}
+void on_trackbar_RAIO(int, void*){
+    pointillism(image,STEP_SLIDER,RAIO_SLIDER,JITTER_SLIDER);
+    imshow("points",points);
+}
+
+
+int main(int argc, char** argv){
+  
+  image= imread(argv[1],CV_LOAD_IMAGE_GRAYSCALE);
+
+  STEP_SLIDER_MAX=15;
+  JITTER_SLIDER_MAX=15;
+  RAIO_SLIDER_MAX=15;
+  namedWindow("points",WINDOW_AUTOSIZE);
+    //creating the trackbars
+  
+  sprintf( TrackbarName, "STEP x %d", STEP_SLIDER_MAX );
+  createTrackbar( TrackbarName, "points",&STEP_SLIDER, STEP_SLIDER_MAX, on_trackbar_STEP);
+  //showing the trackbars
+  on_trackbar_STEP(STEP_SLIDER, 0 );
+
+  //creating the trackbars
+  sprintf( TrackbarName, "JITTER x %d", JITTER_SLIDER_MAX );
+  createTrackbar( TrackbarName, "points",&JITTER_SLIDER,JITTER_SLIDER_MAX,on_trackbar_JITTER);
+  //showing the trackbars
+  on_trackbar_JITTER(JITTER_SLIDER, 0 );
+  
+  //creating the trackbars
+  sprintf( TrackbarName, "RAIO x %d", RAIO_SLIDER_MAX );
+  createTrackbar( TrackbarName, "points",&RAIO_SLIDER,RAIO_SLIDER_MAX,on_trackbar_RAIO);
+  //showing the trackbars
+  on_trackbar_RAIO(RAIO_SLIDER, 0 );
+
+  waitKey(0);
+  bool save;
+  cout<<"Save: For Yes, press 1, for No, press 0"<<endl;
+  cin>>save;
+  if(save)imwrite("pointillism.jpg",points);
 }

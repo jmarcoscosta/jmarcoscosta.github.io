@@ -545,7 +545,8 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_noise">6.8. Noise</a></li>
 </ul>
 </li>
-<li><a href="#_about_the_author">7. About the author</a></li>
+<li><a href="#_canny_pointillism">7. Canny &amp; Pointillism</a></li>
+<li><a href="#_about_the_author">8. About the author</a></li>
 </ul>
 </div>
 </div>
@@ -2630,7 +2631,125 @@ Since I have no camera connected, the code works for an specific image. As I hav
 </div>
 </div>
 <div class="sect1">
-<h2 id="_about_the_author">7. About the author</h2>
+<h2 id="_canny_pointillism">7. Canny &amp; Pointillism</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>At this section, I&#8217;ll show how i combined canny&#8217;s algorithm and some painting to apply pointillism only to a specific part of Karl Marx&#8217;s photo.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="karl.jpg" alt="karl">
+</div>
+<div class="title">Figure 37. Original photo</div>
+</div>
+<div class="paragraph">
+<p>Just for you to know, here is an example of pointillism technique:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="pointillism.jpg" alt="pointillism">
+</div>
+<div class="title">Figure 38. Pointillism</div>
+</div>
+<div class="paragraph">
+<p>First, I prepared the image: painted the picture to keep only Karl&#8217;s beard and hair.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="export.png" alt="export">
+</div>
+<div class="title">Figure 39. Painted photo</div>
+</div>
+<div class="paragraph">
+<p>After this part, I used the canny border detection algorithm to select some points from the beard/hair.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="contorno5.png" alt="contorno5">
+</div>
+<div class="title">Figure 40. Canny&#8217;s result</div>
+</div>
+<div class="paragraph">
+<p>At the code, I stored the borders positions into a stack and used such data as a reference for the places in wich I would draw the circles.</p>
+</div>
+<div id="app-listing" class="listingblock">
+<div class="title">cannypoint.cpp</div>
+<div class="content">
+<pre class="pygments highlight"><code data-lang="cpp"><span class="tok-cp">#include &lt;iostream&gt;</span>
+<span class="tok-cp">#include &quot;opencv2/opencv.hpp&quot;</span>
+<span class="tok-cp">#include &lt;stack&gt;</span>
+<span class="tok-cp">#include &lt;ctime&gt;</span>
+
+<span class="tok-k">using</span> <span class="tok-k">namespace</span> <span class="tok-n">std</span><span class="tok-p">;</span>
+<span class="tok-k">using</span> <span class="tok-k">namespace</span> <span class="tok-n">cv</span><span class="tok-p">;</span>
+
+
+
+<span class="tok-kt">int</span> <span class="tok-nf">main</span><span class="tok-p">(</span><span class="tok-kt">int</span> <span class="tok-n">argc</span><span class="tok-p">,</span> <span class="tok-kt">char</span><span class="tok-o">**</span><span class="tok-n">argv</span><span class="tok-p">){</span>
+ <span class="tok-n">Mat</span> <span class="tok-n">image</span><span class="tok-p">;</span>
+ <span class="tok-n">Mat</span> <span class="tok-n">fromcanny</span><span class="tok-p">;</span>
+ <span class="tok-n">CvPoint</span> <span class="tok-n">auxiliar</span><span class="tok-p">;</span>
+ <span class="tok-n">stack</span><span class="tok-o">&lt;</span><span class="tok-n">CvPoint</span><span class="tok-o">&gt;</span> <span class="tok-n">pixel_stack</span><span class="tok-p">;</span>
+ <span class="tok-n">image</span><span class="tok-o">=</span> <span class="tok-n">imread</span><span class="tok-p">(</span><span class="tok-n">argv</span><span class="tok-p">[</span><span class="tok-mi">1</span><span class="tok-p">],</span><span class="tok-n">CV_LOAD_IMAGE_GRAYSCALE</span><span class="tok-p">);</span>
+  <span class="tok-n">Mat</span> <span class="tok-k">final</span><span class="tok-o">=</span><span class="tok-n">image</span><span class="tok-p">.</span><span class="tok-n">clone</span><span class="tok-p">();</span>
+
+ <span class="tok-n">fromcanny</span><span class="tok-o">=</span><span class="tok-n">imread</span><span class="tok-p">(</span><span class="tok-n">argv</span><span class="tok-p">[</span><span class="tok-mi">2</span><span class="tok-p">],</span><span class="tok-n">CV_LOAD_IMAGE_GRAYSCALE</span><span class="tok-p">);</span>
+ <span class="tok-k">for</span> <span class="tok-p">(</span><span class="tok-kt">int</span> <span class="tok-n">i</span><span class="tok-o">=</span><span class="tok-mi">0</span><span class="tok-p">;</span><span class="tok-n">i</span><span class="tok-o">&lt;</span><span class="tok-n">fromcanny</span><span class="tok-p">.</span><span class="tok-n">rows</span><span class="tok-p">;</span><span class="tok-n">i</span><span class="tok-o">++</span><span class="tok-p">){</span>
+  <span class="tok-k">for</span><span class="tok-p">(</span><span class="tok-kt">int</span> <span class="tok-n">j</span><span class="tok-o">=</span><span class="tok-mi">0</span><span class="tok-p">;</span><span class="tok-n">j</span><span class="tok-o">&lt;</span><span class="tok-n">fromcanny</span><span class="tok-p">.</span><span class="tok-n">cols</span><span class="tok-p">;</span><span class="tok-n">j</span><span class="tok-o">++</span><span class="tok-p">){</span>
+    <span class="tok-n">auxiliar</span><span class="tok-p">.</span><span class="tok-n">x</span><span class="tok-o">=</span><span class="tok-n">j</span><span class="tok-p">;</span>
+    <span class="tok-n">auxiliar</span><span class="tok-p">.</span><span class="tok-n">y</span><span class="tok-o">=</span><span class="tok-n">i</span><span class="tok-p">;</span>
+    <span class="tok-k">if</span><span class="tok-p">(</span><span class="tok-n">fromcanny</span><span class="tok-p">.</span><span class="tok-n">at</span><span class="tok-o">&lt;</span><span class="tok-n">uchar</span><span class="tok-o">&gt;</span><span class="tok-p">(</span><span class="tok-n">i</span><span class="tok-p">,</span><span class="tok-n">j</span><span class="tok-p">)</span><span class="tok-o">&gt;</span><span class="tok-mi">0</span><span class="tok-p">)</span><span class="tok-n">pixel_stack</span><span class="tok-p">.</span><span class="tok-n">push</span><span class="tok-p">(</span><span class="tok-n">auxiliar</span><span class="tok-p">);</span>
+  <span class="tok-p">}</span>
+ <span class="tok-p">}</span>
+
+<span class="tok-kt">int</span> <span class="tok-n">gray</span><span class="tok-p">;</span>
+
+<span class="tok-k">while</span><span class="tok-p">(</span><span class="tok-o">!</span><span class="tok-n">pixel_stack</span><span class="tok-p">.</span><span class="tok-n">empty</span><span class="tok-p">()){</span>
+
+    <span class="tok-n">gray</span><span class="tok-o">=</span><span class="tok-n">image</span><span class="tok-p">.</span><span class="tok-n">at</span><span class="tok-o">&lt;</span><span class="tok-n">uchar</span><span class="tok-o">&gt;</span><span class="tok-p">(</span><span class="tok-n">pixel_stack</span><span class="tok-p">.</span><span class="tok-n">top</span><span class="tok-p">());</span>
+    <span class="tok-n">circle</span><span class="tok-p">(</span><span class="tok-k">final</span><span class="tok-p">,</span><span class="tok-n">pixel_stack</span><span class="tok-p">.</span><span class="tok-n">top</span><span class="tok-p">(),</span><span class="tok-mi">4</span><span class="tok-p">,</span><span class="tok-n">CV_RGB</span><span class="tok-p">(</span><span class="tok-n">gray</span><span class="tok-p">,</span><span class="tok-n">gray</span><span class="tok-p">,</span><span class="tok-n">gray</span><span class="tok-p">),</span><span class="tok-o">-</span><span class="tok-mi">1</span><span class="tok-p">,</span> <span class="tok-n">CV_AA</span><span class="tok-p">);</span> <span class="tok-c1">//circle radium is 4</span>
+    <span class="tok-n">pixel_stack</span><span class="tok-p">.</span><span class="tok-n">pop</span><span class="tok-p">();</span>
+<span class="tok-p">}</span>
+<span class="tok-n">imshow</span><span class="tok-p">(</span><span class="tok-s">&quot;original&quot;</span><span class="tok-p">,</span><span class="tok-n">image</span><span class="tok-p">);</span>
+<span class="tok-n">imshow</span><span class="tok-p">(</span><span class="tok-s">&quot;final&quot;</span><span class="tok-p">,</span><span class="tok-k">final</span><span class="tok-p">);</span>
+
+<span class="tok-n">waitKey</span><span class="tok-p">(</span><span class="tok-mi">0</span><span class="tok-p">);</span>
+<span class="tok-k">return</span> <span class="tok-mi">0</span><span class="tok-p">;</span>
+<span class="tok-p">}</span></code></pre>
+</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="marxfinal.png" alt="marxfinal">
+</div>
+<div class="title">Figure 41. Pointillism on beard and hair</div>
+</div>
+<div class="paragraph">
+<p>We could also use random values in a range from 0 to 255 for "gray" parameter:</p>
+</div>
+<div id="app-listing" class="listingblock">
+<div class="title">random grey tone</div>
+<div class="content">
+<pre class="pygments highlight"><code data-lang="cpp"><span class="tok-kt">int</span> <span class="tok-n">gray</span><span class="tok-p">;</span>
+<span class="tok-n">srand</span><span class="tok-p">(</span><span class="tok-n">time</span><span class="tok-p">(</span><span class="tok-mi">0</span><span class="tok-p">));</span>
+<span class="tok-k">while</span><span class="tok-p">(</span><span class="tok-o">!</span><span class="tok-n">pixel_stack</span><span class="tok-p">.</span><span class="tok-n">empty</span><span class="tok-p">()){</span>
+
+    <span class="tok-n">gray</span><span class="tok-o">=</span> <span class="tok-n">rand</span><span class="tok-p">()</span><span class="tok-o">%</span><span class="tok-mi">255</span> <span class="tok-o">+</span> <span class="tok-mi">1</span><span class="tok-p">;</span>
+    <span class="tok-n">circle</span><span class="tok-p">(</span><span class="tok-k">final</span><span class="tok-p">,</span><span class="tok-n">pixel_stack</span><span class="tok-p">.</span><span class="tok-n">top</span><span class="tok-p">(),</span><span class="tok-mi">4</span><span class="tok-p">,</span><span class="tok-n">CV_RGB</span><span class="tok-p">(</span><span class="tok-n">gray</span><span class="tok-p">,</span><span class="tok-n">gray</span><span class="tok-p">,</span><span class="tok-n">gray</span><span class="tok-p">),</span><span class="tok-o">-</span><span class="tok-mi">1</span><span class="tok-p">,</span> <span class="tok-n">CV_AA</span><span class="tok-p">);</span>
+    <span class="tok-n">pixel_stack</span><span class="tok-p">.</span><span class="tok-n">pop</span><span class="tok-p">();</span>
+<span class="tok-p">}</span></code></pre>
+</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="marxrandom.png" alt="marxrandom">
+</div>
+<div class="title">Figure 42. Random result</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_about_the_author">8. About the author</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>João Marcos Costa, majoring in Electrical Engineering at the Federal University of Rio Grande do Norte (UFRN), Brazil. Managing areas as programming (C/C++,Python and Scilab), Digital Image Processing, and interested in learning programming to Android platform, Electronics (Digital and analogical), such as Social Studies: philosophy, pedagogical methods, and politics (marxist analysis).</p>
@@ -2641,7 +2760,7 @@ Since I have no camera connected, the code works for an specific image. As I hav
 <div id="footer">
 <div id="footer-text">
 Version <br>
-Last updated 2016-10-23 23:36:51 BRT
+Last updated 2016-10-24 11:37:40 BRT
 </div>
 </div>
 </body>
