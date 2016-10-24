@@ -243,14 +243,14 @@ int main(int argc , char** argv){
   imshow("f",final);
   imshow("original",image);
   waitKey(0);*/
-  ShowSpectrum(filter,"Filter");
+ /* ShowSpectrum(filter,"Filter");
   ShowSpectrum(complexImage);
   mulSpectrums(complexImage,filter,complexImage,0);
-  ShowSpectrum(complexImage,"Filtered");
-  /*imshow("Original",image);
+  ShowSpectrum(complexImage,"Filtered");*/
+  imshow("Original",image);
  
   mulSpectrums(complexImage,filter,complexImage,0);
-  imshow("Filtered",getBack(complexImage));*/
+  imshow("Filtered",getBack(complexImage));
   //ShowSpectrum(complexImage);
   //ShowSpectrum(complexImage,"Filtered");
   waitKey(0);
