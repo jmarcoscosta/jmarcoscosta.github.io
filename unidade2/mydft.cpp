@@ -197,13 +197,14 @@ int main(int argc , char** argv){
   Mat_<float> realInput, zeros;
   vector<Mat> planes;
   image=imread(argv[1],CV_LOAD_IMAGE_GRAYSCALE);
- /* Mat ln_image;
+  Mat result=InsertNoise(image, 40, 1.5);
+  /*Mat ln_image;
   ln_image = Mat_<float>(image);
-  normalize(ln_image, ln_image, 0, 1, CV_MINMAX);*/
+  normalize(ln_image, ln_image, 0, 1, CV_MINMAX);
 
- /* ln_image+=Scalar::all(1);  
-  log(ln_image,ln_image);*/
-  complexImage=MakeSpectrum(image);
+  ln_image+=Scalar::all(1);  
+  log(ln_image,ln_image);
+  complexImage=MakeSpectrum(ln_image);
   float FC;
   int option;
   cout<<"choose option"<<endl;
@@ -236,22 +237,12 @@ int main(int argc , char** argv){
       filter=MakeHomomorphical(complexImage,YH,YL,c,D0);
       break;
   }
- /* mulSpectrums(complexImage,filter,complexImage,0);
+  mulSpectrums(complexImage,filter,complexImage,0);
   Mat final=getBack(complexImage);
   exp(final,final);
-  normalize(final,final,0,1,CV_MINMAX);
-  imshow("f",final);
+  normalize(final,final,0,1,CV_MINMAX);*/
+  imshow("result",getBack(result));
   imshow("original",image);
-  waitKey(0);*/
- /* ShowSpectrum(filter,"Filter");
-  ShowSpectrum(complexImage);
-  mulSpectrums(complexImage,filter,complexImage,0);
-  ShowSpectrum(complexImage,"Filtered");*/
-  imshow("Original",image);
- 
-  mulSpectrums(complexImage,filter,complexImage,0);
-  imshow("Filtered",getBack(complexImage));
-  //ShowSpectrum(complexImage);
-  //ShowSpectrum(complexImage,"Filtered");
   waitKey(0);
+ 
 }
