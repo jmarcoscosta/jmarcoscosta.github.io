@@ -4,20 +4,18 @@
 #include <math.h>
 #include <string>
 //#define RADIUS 20
-
+#include <typeinfo>
 using namespace cv;
 using namespace std;
 
-void deslocaDFT(Mat& image ){
+void shiftsDFT(Mat& image ){ 
   Mat tmp, A, B, C, D;
 
-  // se a imagem tiver tamanho impar, recorta a regiao para
-  // evitar cópias de tamanho desigual
   image = image(Rect(0, 0, image.cols & -2, image.rows & -2));
   int cx = image.cols/2;
   int cy = image.rows/2;
 
-  // reorganiza os quadrantes da transformada
+  // recombines the transforms's quadrants
   // A B   ->  D C
   // C D       B A
   A = image(Rect(0, 0, cx, cy));
@@ -51,7 +49,7 @@ Mat MakeSpectrum (Mat &image){ //returns image in frequency domain
   planes.push_back(zeros);
   merge(planes, complexImage);
   dft(complexImage, complexImage);
-  deslocaDFT(complexImage);
+  shiftsDFT(complexImage);
   return complexImage;
 
 
@@ -101,7 +99,7 @@ Mat getBack(Mat &Im){//frequency to space for exhibition
   Mat ImS;
   vector<Mat> planes;
   Im.copyTo(ImS);
-  deslocaDFT(ImS);
+  shiftsDFT(ImS);
   idft(ImS,ImS);
   planes.clear();
   split(ImS,planes);
@@ -123,6 +121,7 @@ Mat MakeLowPass(Mat &Im, float RADIUS){
  
     }
   }
+  resize(tmp,tmp,filter.size()); //making sure the filter will have the same size of the input image
   Mat comps[]= {tmp, tmp};
   merge(comps, 2, filter);
   return filter;
@@ -142,6 +141,8 @@ Mat MakeHighPass(Mat &Im, float RADIUS){
  
     }
   }
+  resize(tmp,tmp,filter.size()); //making sure the filter will have the same size of the input image
+
   Mat comps[]= {tmp, tmp};
   merge(comps, 2, filter);
   return filter;
@@ -161,6 +162,8 @@ Mat MakeBandPass(Mat &Im, float MAX_RADIUS, float MIN_RADIUS){
       else         tmp.at<float> (i,j) = 0.0;  
     }
   }
+  resize(tmp,tmp,filter.size()); //making sure the filter will have the same size of the input image
+
   Mat comps[]= {tmp, tmp};
   merge(comps, 2, filter);
   return filter;
@@ -180,6 +183,7 @@ Mat MakeHomomorphical(Mat &Im,float GAMMA_H, float GAMMA_L, float c, float RADIU
  
     }
   }
+  resize(tmp,tmp,filter.size()); //making sure the filter will have the same size of the input image
   Mat comps[]= {tmp, tmp};
   merge(comps, 2, filter);
   return filter;
@@ -193,13 +197,13 @@ int main(int argc , char** argv){
   Mat_<float> realInput, zeros;
   vector<Mat> planes;
   image=imread(argv[1],CV_LOAD_IMAGE_GRAYSCALE);
-  Mat ln_image;
+ /* Mat ln_image;
   ln_image = Mat_<float>(image);
-  normalize(ln_image, ln_image, 0, 1, CV_MINMAX);
+  normalize(ln_image, ln_image, 0, 1, CV_MINMAX);*/
 
-  ln_image+=Scalar::all(1);  
-  log(ln_image,ln_image);
-  complexImage=MakeSpectrum(ln_image);
+ /* ln_image+=Scalar::all(1);  
+  log(ln_image,ln_image);*/
+  complexImage=MakeSpectrum(image);
   float FC;
   int option;
   cout<<"choose option"<<endl;
@@ -232,11 +236,22 @@ int main(int argc , char** argv){
       filter=MakeHomomorphical(complexImage,YH,YL,c,D0);
       break;
   }
-  mulSpectrums(complexImage,filter,complexImage,0);
+ /* mulSpectrums(complexImage,filter,complexImage,0);
   Mat final=getBack(complexImage);
   exp(final,final);
   normalize(final,final,0,1,CV_MINMAX);
   imshow("f",final);
   imshow("original",image);
+  waitKey(0);*/
+  ShowSpectrum(filter,"Filter");
+  ShowSpectrum(complexImage);
+  mulSpectrums(complexImage,filter,complexImage,0);
+  ShowSpectrum(complexImage,"Filtered");
+  /*imshow("Original",image);
+ 
+  mulSpectrums(complexImage,filter,complexImage,0);
+  imshow("Filtered",getBack(complexImage));*/
+  //ShowSpectrum(complexImage);
+  //ShowSpectrum(complexImage,"Filtered");
   waitKey(0);
 }

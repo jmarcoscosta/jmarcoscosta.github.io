@@ -536,9 +536,12 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_images_at_frequency_domain_representation">6. Images at Frequency domain/representation</a>
 <ul class="sectlevel2">
 <li><a href="#_getting_image_s_frequency_representation">6.1. Getting image&#8217;s frequency representation</a></li>
+<li><a href="#_filtering">6.2. Filtering</a></li>
 </ul>
 </li>
-<li><a href="#_about_the_author">7. About the author</a></li>
+<li><a href="#_low_pass">7. Low pass</a></li>
+<li><a href="#_high_pass">8. High pass</a></li>
+<li><a href="#_about_the_author">9. About the author</a></li>
 </ul>
 </div>
 </div>
@@ -2141,15 +2144,111 @@ Since I have no camera connected, the code works for an specific image. As I hav
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="samplegrey.jpg" alt="samplegrey">
+<img src="specsample.png" alt="specsample">
 </div>
-<div class="title">Figure 26. Original</div>
+<div class="title">Figure 26. Original and its Spectrum</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_filtering">6.2. Filtering</h3>
+<div class="paragraph">
+<p>There are four kinds of filtering I will show you: low-pass, high-pass, band-pass and homomorphical. All those filters select some frequencies and removes the rest of them. The spots closer to the spectrum&#8217;s center are the lower frequencies, and as long as the distance from the center increases, the frequencies increase as well.</p>
 </div>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_about_the_author">7. About the author</h2>
+<h2 id="_low_pass">7. Low pass</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Keeps the frequencies lower then an limit frequency given by the user.</p>
+</div>
+<div id="app-listing" class="listingblock">
+<div class="title">Low pass</div>
+<div class="content">
+<pre class="pygments highlight"><code data-lang="cpp"><span class="tok-n">Mat</span> <span class="tok-nf">MakeLowPass</span><span class="tok-p">(</span><span class="tok-n">Mat</span> <span class="tok-o">&amp;</span><span class="tok-n">Im</span><span class="tok-p">,</span> <span class="tok-kt">float</span> <span class="tok-n">RADIUS</span><span class="tok-p">){</span>
+  <span class="tok-n">Mat</span> <span class="tok-n">filter</span><span class="tok-o">=</span><span class="tok-n">Im</span><span class="tok-p">.</span><span class="tok-n">clone</span><span class="tok-p">();</span>
+  <span class="tok-kt">int</span> <span class="tok-n">dft_M</span> <span class="tok-o">=</span> <span class="tok-n">getOptimalDFTSize</span><span class="tok-p">(</span><span class="tok-n">Im</span><span class="tok-p">.</span><span class="tok-n">rows</span><span class="tok-p">);</span>
+  <span class="tok-kt">int</span> <span class="tok-n">dft_N</span> <span class="tok-o">=</span> <span class="tok-n">getOptimalDFTSize</span><span class="tok-p">(</span><span class="tok-n">Im</span><span class="tok-p">.</span><span class="tok-n">cols</span><span class="tok-p">);</span>
+  <span class="tok-n">Mat</span> <span class="tok-n">tmp</span><span class="tok-p">(</span><span class="tok-n">dft_M</span><span class="tok-p">,</span><span class="tok-n">dft_N</span><span class="tok-p">,</span><span class="tok-n">CV_32F</span><span class="tok-p">);</span>
+  <span class="tok-k">for</span><span class="tok-p">(</span><span class="tok-kt">int</span> <span class="tok-n">i</span><span class="tok-o">=</span><span class="tok-mi">0</span><span class="tok-p">;</span> <span class="tok-n">i</span><span class="tok-o">&lt;</span><span class="tok-n">dft_M</span><span class="tok-p">;</span> <span class="tok-n">i</span><span class="tok-o">++</span><span class="tok-p">){</span>
+    <span class="tok-k">for</span><span class="tok-p">(</span><span class="tok-kt">int</span> <span class="tok-n">j</span><span class="tok-o">=</span><span class="tok-mi">0</span><span class="tok-p">;</span> <span class="tok-n">j</span><span class="tok-o">&lt;</span><span class="tok-n">dft_N</span><span class="tok-p">;</span> <span class="tok-n">j</span><span class="tok-o">++</span><span class="tok-p">){</span>
+      <span class="tok-k">if</span><span class="tok-p">((</span><span class="tok-n">i</span><span class="tok-o">-</span><span class="tok-n">dft_M</span><span class="tok-o">/</span><span class="tok-mi">2</span><span class="tok-p">)</span><span class="tok-o">*</span><span class="tok-p">(</span><span class="tok-n">i</span><span class="tok-o">-</span><span class="tok-n">dft_M</span><span class="tok-o">/</span><span class="tok-mi">2</span><span class="tok-p">)</span><span class="tok-o">+</span><span class="tok-p">(</span><span class="tok-n">j</span><span class="tok-o">-</span><span class="tok-n">dft_N</span><span class="tok-o">/</span><span class="tok-mi">2</span><span class="tok-p">)</span><span class="tok-o">*</span><span class="tok-p">(</span><span class="tok-n">j</span><span class="tok-o">-</span><span class="tok-n">dft_N</span><span class="tok-o">/</span><span class="tok-mi">2</span><span class="tok-p">)</span> <span class="tok-o">&lt;</span> <span class="tok-n">RADIUS</span><span class="tok-o">*</span><span class="tok-n">RADIUS</span><span class="tok-p">){</span>
+        <span class="tok-n">tmp</span><span class="tok-p">.</span><span class="tok-n">at</span><span class="tok-o">&lt;</span><span class="tok-kt">float</span><span class="tok-o">&gt;</span> <span class="tok-p">(</span><span class="tok-n">i</span><span class="tok-p">,</span><span class="tok-n">j</span><span class="tok-p">)</span> <span class="tok-o">=</span> <span class="tok-mf">1.0</span><span class="tok-p">;</span>
+      <span class="tok-p">}</span>
+      <span class="tok-k">else</span>         <span class="tok-n">tmp</span><span class="tok-p">.</span><span class="tok-n">at</span><span class="tok-o">&lt;</span><span class="tok-kt">float</span><span class="tok-o">&gt;</span> <span class="tok-p">(</span><span class="tok-n">i</span><span class="tok-p">,</span><span class="tok-n">j</span><span class="tok-p">)</span> <span class="tok-o">=</span> <span class="tok-mf">0.0</span><span class="tok-p">;</span>
+
+    <span class="tok-p">}</span>
+  <span class="tok-p">}</span>
+  <span class="tok-n">resize</span><span class="tok-p">(</span><span class="tok-n">tmp</span><span class="tok-p">,</span><span class="tok-n">tmp</span><span class="tok-p">,</span><span class="tok-n">filter</span><span class="tok-p">.</span><span class="tok-n">size</span><span class="tok-p">());</span> <span class="tok-c1">//making sure the filter will have the same size of the input image</span>
+
+  <span class="tok-n">Mat</span> <span class="tok-n">comps</span><span class="tok-p">[]</span><span class="tok-o">=</span> <span class="tok-p">{</span><span class="tok-n">tmp</span><span class="tok-p">,</span> <span class="tok-n">tmp</span><span class="tok-p">};</span>
+  <span class="tok-n">merge</span><span class="tok-p">(</span><span class="tok-n">comps</span><span class="tok-p">,</span> <span class="tok-mi">2</span><span class="tok-p">,</span> <span class="tok-n">filter</span><span class="tok-p">);</span>
+  <span class="tok-k">return</span> <span class="tok-n">filter</span><span class="tok-p">;</span>
+<span class="tok-p">}</span></code></pre>
+</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="lowpass.png" alt="lowpass">
+</div>
+<div class="title">Figure 27. Low pass filter</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="lowpass.png" alt="lowpass">
+</div>
+<div class="title">Figure 28. Low pass filter result</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_high_pass">8. High pass</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Keeps the frequencies higher then an limit frequency given by the user.</p>
+</div>
+<div id="app-listing" class="listingblock">
+<div class="title">High pass</div>
+<div class="content">
+<pre class="pygments highlight"><code data-lang="cpp"><span class="tok-n">Mat</span> <span class="tok-nf">MakeHighPass</span><span class="tok-p">(</span><span class="tok-n">Mat</span> <span class="tok-o">&amp;</span><span class="tok-n">Im</span><span class="tok-p">,</span> <span class="tok-kt">float</span> <span class="tok-n">RADIUS</span><span class="tok-p">){</span>
+  <span class="tok-n">Mat</span> <span class="tok-n">filter</span><span class="tok-o">=</span><span class="tok-n">Im</span><span class="tok-p">.</span><span class="tok-n">clone</span><span class="tok-p">();</span>
+  <span class="tok-kt">int</span> <span class="tok-n">dft_M</span> <span class="tok-o">=</span> <span class="tok-n">getOptimalDFTSize</span><span class="tok-p">(</span><span class="tok-n">Im</span><span class="tok-p">.</span><span class="tok-n">rows</span><span class="tok-p">);</span>
+  <span class="tok-kt">int</span> <span class="tok-n">dft_N</span> <span class="tok-o">=</span> <span class="tok-n">getOptimalDFTSize</span><span class="tok-p">(</span><span class="tok-n">Im</span><span class="tok-p">.</span><span class="tok-n">cols</span><span class="tok-p">);</span>
+  <span class="tok-n">Mat</span> <span class="tok-n">tmp</span><span class="tok-p">(</span><span class="tok-n">dft_M</span><span class="tok-p">,</span><span class="tok-n">dft_N</span><span class="tok-p">,</span><span class="tok-n">CV_32F</span><span class="tok-p">);</span>
+  <span class="tok-k">for</span><span class="tok-p">(</span><span class="tok-kt">int</span> <span class="tok-n">i</span><span class="tok-o">=</span><span class="tok-mi">0</span><span class="tok-p">;</span> <span class="tok-n">i</span><span class="tok-o">&lt;</span><span class="tok-n">dft_M</span><span class="tok-p">;</span> <span class="tok-n">i</span><span class="tok-o">++</span><span class="tok-p">){</span>
+    <span class="tok-k">for</span><span class="tok-p">(</span><span class="tok-kt">int</span> <span class="tok-n">j</span><span class="tok-o">=</span><span class="tok-mi">0</span><span class="tok-p">;</span> <span class="tok-n">j</span><span class="tok-o">&lt;</span><span class="tok-n">dft_N</span><span class="tok-p">;</span> <span class="tok-n">j</span><span class="tok-o">++</span><span class="tok-p">){</span>
+      <span class="tok-k">if</span><span class="tok-p">((</span><span class="tok-n">i</span><span class="tok-o">-</span><span class="tok-n">dft_M</span><span class="tok-o">/</span><span class="tok-mi">2</span><span class="tok-p">)</span><span class="tok-o">*</span><span class="tok-p">(</span><span class="tok-n">i</span><span class="tok-o">-</span><span class="tok-n">dft_M</span><span class="tok-o">/</span><span class="tok-mi">2</span><span class="tok-p">)</span><span class="tok-o">+</span><span class="tok-p">(</span><span class="tok-n">j</span><span class="tok-o">-</span><span class="tok-n">dft_N</span><span class="tok-o">/</span><span class="tok-mi">2</span><span class="tok-p">)</span><span class="tok-o">*</span><span class="tok-p">(</span><span class="tok-n">j</span><span class="tok-o">-</span><span class="tok-n">dft_N</span><span class="tok-o">/</span><span class="tok-mi">2</span><span class="tok-p">)</span> <span class="tok-o">&lt;</span> <span class="tok-n">RADIUS</span><span class="tok-o">*</span><span class="tok-n">RADIUS</span><span class="tok-p">){</span>
+        <span class="tok-n">tmp</span><span class="tok-p">.</span><span class="tok-n">at</span><span class="tok-o">&lt;</span><span class="tok-kt">float</span><span class="tok-o">&gt;</span> <span class="tok-p">(</span><span class="tok-n">i</span><span class="tok-p">,</span><span class="tok-n">j</span><span class="tok-p">)</span> <span class="tok-o">=</span> <span class="tok-mf">0.0</span><span class="tok-p">;</span>
+      <span class="tok-p">}</span>
+      <span class="tok-k">else</span>         <span class="tok-n">tmp</span><span class="tok-p">.</span><span class="tok-n">at</span><span class="tok-o">&lt;</span><span class="tok-kt">float</span><span class="tok-o">&gt;</span> <span class="tok-p">(</span><span class="tok-n">i</span><span class="tok-p">,</span><span class="tok-n">j</span><span class="tok-p">)</span> <span class="tok-o">=</span> <span class="tok-mf">1.0</span><span class="tok-p">;</span>
+
+    <span class="tok-p">}</span>
+  <span class="tok-p">}</span>
+  <span class="tok-n">resize</span><span class="tok-p">(</span><span class="tok-n">tmp</span><span class="tok-p">,</span><span class="tok-n">tmp</span><span class="tok-p">,</span><span class="tok-n">filter</span><span class="tok-p">.</span><span class="tok-n">size</span><span class="tok-p">());</span> <span class="tok-c1">//making sure the filter will have the same size of the input image</span>
+
+  <span class="tok-n">Mat</span> <span class="tok-n">comps</span><span class="tok-p">[]</span><span class="tok-o">=</span> <span class="tok-p">{</span><span class="tok-n">tmp</span><span class="tok-p">,</span> <span class="tok-n">tmp</span><span class="tok-p">};</span>
+  <span class="tok-n">merge</span><span class="tok-p">(</span><span class="tok-n">comps</span><span class="tok-p">,</span> <span class="tok-mi">2</span><span class="tok-p">,</span> <span class="tok-n">filter</span><span class="tok-p">);</span>
+  <span class="tok-k">return</span> <span class="tok-n">filter</span><span class="tok-p">;</span>
+<span class="tok-p">}</span></code></pre>
+</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="highpass.png" alt="highpass">
+</div>
+<div class="title">Figure 29. High pass filter</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="highpass2.png" alt="highpass2">
+</div>
+<div class="title">Figure 30. High pass filter result</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_about_the_author">9. About the author</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>João Marcos Costa, majoring in Electrical Engineering at the Federal University of Rio Grande do Norte (UFRN), Brazil. Managing areas as programming (C/C++,Python and Scilab), Digital Image Processing, and interested in learning programming to Android platform, Electronics (Digital and analogical), such as Social Studies: philosophy, pedagogical methods, and politics (marxist analysis).</p>
@@ -2160,7 +2259,7 @@ Since I have no camera connected, the code works for an specific image. As I hav
 <div id="footer">
 <div id="footer-text">
 Version <br>
-Last updated 2016-10-23 21:09:31 BRT
+Last updated 2016-10-23 22:00:05 BRT
 </div>
 </div>
 </body>
