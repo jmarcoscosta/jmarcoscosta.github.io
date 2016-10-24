@@ -537,14 +537,14 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <ul class="sectlevel2">
 <li><a href="#_getting_image_s_frequency_representation">6.1. Getting image&#8217;s frequency representation</a></li>
 <li><a href="#_filtering">6.2. Filtering</a></li>
+<li><a href="#_low_pass">6.3. Low pass</a></li>
+<li><a href="#_high_pass">6.4. High pass</a></li>
+<li><a href="#_band_pass">6.5. Band pass</a></li>
+<li><a href="#_homomorphical_filter">6.6. Homomorphical filter</a></li>
+<li><a href="#_noise">6.7. Noise</a></li>
 </ul>
 </li>
-<li><a href="#_low_pass">7. Low pass</a></li>
-<li><a href="#_high_pass">8. High pass</a></li>
-<li><a href="#_band_pass">9. Band pass</a></li>
-<li><a href="#_homomorphical_filter">10. Homomorphical filter</a></li>
-<li><a href="#_noise">11. Noise</a></li>
-<li><a href="#_about_the_author">12. About the author</a></li>
+<li><a href="#_about_the_author">7. About the author</a></li>
 </ul>
 </div>
 </div>
@@ -2158,11 +2158,8 @@ Since I have no camera connected, the code works for an specific image. As I hav
 <p>There are four kinds of filtering I will show you: low-pass, high-pass, band-pass and homomorphical. All those filters select some frequencies and removes the rest of them. The spots closer to the spectrum&#8217;s center are the lower frequencies, and as long as the distance from the center increases, the frequencies increase as well.</p>
 </div>
 </div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_low_pass">7. Low pass</h2>
-<div class="sectionbody">
+<div class="sect2">
+<h3 id="_low_pass">6.3. Low pass</h3>
 <div class="paragraph">
 <p>Keeps the frequencies lower then an limit frequency given by the user.</p>
 </div>
@@ -2204,10 +2201,8 @@ Since I have no camera connected, the code works for an specific image. As I hav
 <div class="title">Figure 28. Low pass filter result</div>
 </div>
 </div>
-</div>
-<div class="sect1">
-<h2 id="_high_pass">8. High pass</h2>
-<div class="sectionbody">
+<div class="sect2">
+<h3 id="_high_pass">6.4. High pass</h3>
 <div class="paragraph">
 <p>Keeps the frequencies higher then an limit frequency given by the user.</p>
 </div>
@@ -2249,10 +2244,8 @@ Since I have no camera connected, the code works for an specific image. As I hav
 <div class="title">Figure 30. High pass filter result</div>
 </div>
 </div>
-</div>
-<div class="sect1">
-<h2 id="_band_pass">9. Band pass</h2>
-<div class="sectionbody">
+<div class="sect2">
+<h3 id="_band_pass">6.5. Band pass</h3>
 <div class="paragraph">
 <p>Keeps the frequencies between the two limits given by the user, and discards the rest</p>
 </div>
@@ -2294,10 +2287,8 @@ Since I have no camera connected, the code works for an specific image. As I hav
 <div class="title">Figure 32. Band pass filter result</div>
 </div>
 </div>
-</div>
-<div class="sect1">
-<h2 id="_homomorphical_filter">10. Homomorphical filter</h2>
-<div class="sectionbody">
+<div class="sect2">
+<h3 id="_homomorphical_filter">6.6. Homomorphical filter</h3>
 <div class="paragraph">
 <p>We can use Homomorphical filter for giving a better luminosity distribution for the scene. For such, we increase high frequencies and decrease the lower ones.</p>
 </div>
@@ -2380,10 +2371,8 @@ Since I have no camera connected, the code works for an specific image. As I hav
 <div class="title">Figure 34. Homomorphical filter result</div>
 </div>
 </div>
-</div>
-<div class="sect1">
-<h2 id="_noise">11. Noise</h2>
-<div class="sectionbody">
+<div class="sect2">
+<h3 id="_noise">6.7. Noise</h3>
 <div class="paragraph">
 <p>If you take a look back into the low/high pass filters, you&#8217;ll see some tiny periodic circles as a result of filtering. We call that noise (Moiré pattern), and we can insert artifical noise in any image we want&#8230;&#8203;</p>
 </div>
@@ -2426,8 +2415,9 @@ Since I have no camera connected, the code works for an specific image. As I hav
 </div>
 </div>
 </div>
+</div>
 <div class="sect1">
-<h2 id="_about_the_author">12. About the author</h2>
+<h2 id="_about_the_author">7. About the author</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>João Marcos Costa, majoring in Electrical Engineering at the Federal University of Rio Grande do Norte (UFRN), Brazil. Managing areas as programming (C/C++,Python and Scilab), Digital Image Processing, and interested in learning programming to Android platform, Electronics (Digital and analogical), such as Social Studies: philosophy, pedagogical methods, and politics (marxist analysis).</p>
@@ -2438,7 +2428,7 @@ Since I have no camera connected, the code works for an specific image. As I hav
 <div id="footer">
 <div id="footer-text">
 Version <br>
-Last updated 2016-10-23 22:33:01 BRT
+Last updated 2016-10-23 22:34:42 BRT
 </div>
 </div>
 </body>
