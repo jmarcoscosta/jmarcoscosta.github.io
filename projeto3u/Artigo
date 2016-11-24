@@ -1,0 +1,10 @@
+\documentclass[conference,journal]{sbatex}
+\usepackage[latin1]{inputenc}
+\usepackage[T1]{fontenc}
+\title{Automatização da correção de provas via Android}
+\author{João Marcos Costa}
+	{jmcosta944@gmail.com}
+\address{Universidade Federal do Rio Grande do Norte \\ 
+Campus Central \\
+Natal, RN, Brasil}
+\author[1]{Marcus Vinícius de O. Brito}{mvobrito@gmail.com}
